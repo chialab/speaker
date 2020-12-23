@@ -1,0 +1,1 @@
+extends: '@chialab/eslint-config/typescript'
