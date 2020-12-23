@@ -73,7 +73,7 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
 export class Adapter {
     private options: SynthesisOptions;
     private utterances?: Utterance[];
-    private currentSpeechUtterance?: SpeechSynthesisUtterance;
+    private utterance?: SpeechSynthesisUtterance;
 
     /**
      * Create an instance of the Synthesis adapter.
@@ -101,14 +101,14 @@ export class Adapter {
      * Cancel the current speaking.
      */
     async cancel(): Promise<void> {
-        if (!this.currentSpeechUtterance) {
+        if (!this.utterance) {
             speechSynthesis.cancel();
             return;
         }
 
-        let utterance = this.currentSpeechUtterance;
+        let utterance = this.utterance;
         return new Promise((resolve) => {
-            delete this.currentSpeechUtterance;
+            delete this.utterance;
             utterance.addEventListener('end', () => resolve());
             speechSynthesis.cancel();
         });
@@ -146,28 +146,55 @@ export class Adapter {
             return;
         }
 
-        console.log(voices);
-
         let utterances = this.utterances;
         let utterance = utterances[index];
         let text = utterance.getTokens().map((token) => token.text).join(' ');
         let speechUtterance = new SpeechSynthesisUtterance(text);
         // we need to save a reference of the utterance in order to prevent gc. ¯\_(ツ)_/¯
-        this.currentSpeechUtterance = speechUtterance;
+        this.utterance = speechUtterance;
+
+        // sometimes the browser does not dispatch end event after resume. ¯\_(ツ)_/¯
+        let timeout;
+        let tick = (stop = false) => {
+            clearTimeout(timeout);
+            if (!stop) {
+                timeout = setTimeout(async () => {
+                    // eslint-disable-next-line
+                    console.warn('Programmatically end the utterance', speechUtterance);
+                    await this.cancel();
+                    if (index !== utterances.length - 1) {
+                        this.speakToken(voices, index + 1);
+                    }
+                }, 2000);
+            }
+        };
 
         // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
         speechUtterance.addEventListener('start', () => {
             utterance.started();
+            tick();
         });
+
+        speechUtterance.addEventListener('resume', () => {
+            tick();
+        });
+
+        speechUtterance.addEventListener('pause', () => {
+            tick(true);
+        });
+
         speechUtterance.addEventListener('boundary', ({ charIndex }) => {
+            tick();
             utterance.boundary(utterance.getToken(charIndex));
         });
 
         speechUtterance.addEventListener('end', () => {
-            if (!this.currentSpeechUtterance) {
+            tick(true);
+
+            if (!this.utterance) {
                 return;
             }
-            delete this.currentSpeechUtterance;
+            delete this.utterance;
             utterance.ended();
             if (index !== utterances.length - 1) {
                 this.speakToken(voices, index + 1);
