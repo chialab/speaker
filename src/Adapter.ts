@@ -191,6 +191,9 @@ export class Adapter {
         speechUtterance.addEventListener('end', () => {
             tick(true);
 
+            if (this.paused) {
+                return;
+            }
             if (!this.utterance) {
                 return;
             }
