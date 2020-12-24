@@ -1,6 +1,6 @@
 {
   "name": "@chialab/speaker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A text2speech implementation for HTML documents.",
   "directories": {
     "src": "src",
