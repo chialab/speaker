@@ -1,4 +1,3 @@
-import { merge } from '@chialab/proteins';
 import { Utterance } from './Utterance';
 
 /**
@@ -25,6 +24,14 @@ export interface SynthesisOptions {
      * A list of preferred voice names to use.
      */
     preferredVoices: string[];
+    /**
+     * A list of female voice names to use.
+     */
+    femaleVoices: string[];
+    /**
+     * A list of male voice names to use.
+     */
+    maleVoices: string[];
 }
 
 /**
@@ -65,6 +72,36 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
         'Samantha',
         'Sara',
     ],
+    femaleVoices: [
+        'Google UK English Female',
+        'Amelie',
+        'Anna',
+        'Ellen',
+        'Fiona',
+        'Ioana',
+        'Joana',
+        'Monica',
+        'Karen',
+        'Luciana',
+        'Laura',
+        'Milena',
+        'Samantha',
+        'Sara',
+        'Tessa',
+        'Victoria',
+        'Zuzana',
+    ],
+    maleVoices: [
+        'Google UK English Male',
+        'Daniel',
+        'Diego',
+        'Fred',
+        'Jorge',
+        'Juan',
+        'Luca',
+        'Thomas',
+        'Xander',
+    ],
 };
 
 /**
@@ -80,7 +117,10 @@ export class Adapter {
      * @param options A set of options for Synthesis.
      */
     constructor(options: Partial<SynthesisOptions> = {}) {
-        this.options = merge(DEFAULT_OPTIONS, options);
+        this.options = {
+            ...DEFAULT_OPTIONS,
+            ...options,
+        };
     }
 
     /**
@@ -88,13 +128,6 @@ export class Adapter {
      */
     get paused() {
         return speechSynthesis.paused;
-    }
-
-    /**
-     * Check if the adapter is supported by the browser.
-     */
-    async support() {
-        return !!speechSynthesis;
     }
 
     /**
@@ -205,7 +238,11 @@ export class Adapter {
         });
 
         // setup utterance properties.
-        let voice = this.getVoice(voices, utterance.lang);
+        let voice = this.getVoice(voices, utterance.lang, utterance.voices);
+        if (!voice) {
+            return;
+        }
+
         speechUtterance.voice = voice;
         speechUtterance.lang = voice.lang;
         speechUtterance.rate = utterance.rate;
@@ -216,21 +253,50 @@ export class Adapter {
 
     /**
      * Get a voice for the requested language.
-     * @param {Array<SpeechSynthesisVoice>} voices A list of available voices.
-     * @param {string} lang The requested language.
-     * @return {SpeechSynthesisVoice}
+     * @param voices A list of available voices.
+     * @param requestedLang The requested language.
+     * @param requestedVoices The requested voices.
      */
-    private getVoice(voices, lang) {
-        let { preferredVoices } = this.options;
+    private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
+        let { preferredVoices, maleVoices, femaleVoices } = this.options;
 
-        lang = lang.toLowerCase().replace('_', '-');
+        requestedLang = requestedLang.toLowerCase().replace('_', '-');
         let availableVoices = voices.filter((voice) => {
             let voiceLang = voice.lang.toLowerCase().replace('_', '-');
             let shortVoiceLang = voiceLang.split('-')[0];
-            return voiceLang === lang || shortVoiceLang === lang;
+            return voiceLang === requestedLang || shortVoiceLang === requestedLang;
         });
 
-        return availableVoices.find((voice) => preferredVoices.includes(voice.name)) || availableVoices[0];
+        if (!availableVoices.length) {
+            return null;
+        }
+
+        if (requestedVoices.length) {
+            let voice = requestedVoices
+                .reduce((voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
+                    if (voice) {
+                        return voice;
+                    }
+                    if (voiceType === 'male') {
+                        return availableVoices.find((voice) => maleVoices.includes(voice.name)) || null;
+                    }
+                    if (voiceType === 'female') {
+                        return availableVoices.find((voice) => femaleVoices.includes(voice.name)) || null;
+                    }
+
+                    return availableVoices.find((voice) => voice.name === voiceType) || null;
+                }, null);
+            if (voice) {
+                return voice;
+            }
+        }
+
+        let preferredAvailableVoices = availableVoices.filter((voice) => preferredVoices.includes(voice.name));
+        if (preferredAvailableVoices.length) {
+            return preferredAvailableVoices[0];
+        }
+
+        return availableVoices[0];
     }
 
     /**

@@ -34,12 +34,14 @@ export class Utterance extends Factory.Emitter {
      * Create an Utterance instance.
      * @param tokens A list of tokens contained by the utterance.
      * @param lang The utterance language.
+     * @param voices The utterance voices.
      * @param rate The utterance playback rate.
      */
-    constructor(tokens: SpeechToken[], lang: string, rate: number) {
+    constructor(tokens: SpeechToken[], lang: string, voices: string[], rate: number) {
         super();
         this.tokens = tokens;
         this.lang = lang;
+        this.voices = voices;
         this.rate = rate;
     }
 

@@ -243,6 +243,7 @@ export class Speaker extends Factory.Emitter {
         const { sentenceSelector, ariaAttributes } = this.options;
 
         let currentLang: string|undefined;
+        let currentVoices = '';
         let currentSentence: Element|null = null;
         let tokens: SpeechToken[] = [];
         let currentText = '';
@@ -259,6 +260,10 @@ export class Speaker extends Factory.Emitter {
                 splitted[1] = splitted[1].substring(0, 2).toUpperCase();
             }
             language = splitted.join('-');
+            let voices = (getComputedStyle(token).getPropertyValue('--speak-voice') || '')
+                .split(',')
+                .map((chunk) => chunk.trim())
+                .join(',');
 
             let text = (token as HTMLElement).innerText.trim();
             if (ariaAttributes) {
@@ -270,9 +275,10 @@ export class Speaker extends Factory.Emitter {
                 }
             }
 
-            if ((!currentLang || currentLang === language) && (!currentSentence || currentSentence === sentenceElement)) {
+            if ((!currentLang || currentLang === language) && currentVoices === voices && (!currentSentence || currentSentence === sentenceElement)) {
                 let currentLength = currentText.length;
                 currentLang = language;
+                currentVoices = voices;
                 currentSentence = sentenceElement;
                 if (currentText.trim()) {
                     currentLength += 1;
@@ -287,10 +293,11 @@ export class Speaker extends Factory.Emitter {
                     start: currentLength,
                     end: currentText.length,
                 });
-            } else if (currentLang !== language || currentSentence !== sentenceElement) {
-                let utterance = new Utterance(tokens, currentLang || this.lang, this.rate);
+            } else if (currentLang !== language || currentVoices !== voices || currentSentence !== sentenceElement) {
+                let utterance = new Utterance(tokens, currentLang || this.lang, (currentVoices || '').split(','), this.rate);
                 queue.push(utterance);
                 currentLang = language;
+                currentVoices = voices;
                 currentText = text;
                 currentSentence = sentenceElement;
                 tokens = [{
@@ -302,7 +309,7 @@ export class Speaker extends Factory.Emitter {
                 }];
             }
             if (index === words.length - 1) {
-                let utterance = new Utterance(tokens, currentLang || this.lang, this.rate);
+                let utterance = new Utterance(tokens, currentLang || this.lang, (currentVoices || '').split(','), this.rate);
                 queue.push(utterance);
             }
         }
