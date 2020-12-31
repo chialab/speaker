@@ -19,6 +19,20 @@ const VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>> = new Promise((resolv
     }
 });
 
+/**
+ * Safari voices names prefix.
+ */
+const SAFARI_PREFIX = 'com.apple.speech.synthesis.voice.';
+
+/**
+ * Normalize voices names.
+ * @param name The browser voice name.
+ * @return The normalized value.
+ */
+function normalizeVoiceName(name: string) {
+    return name.toLowerCase().replace(SAFARI_PREFIX, '');
+}
+
 export interface SynthesisOptions {
     /**
      * A list of preferred voice names to use.
@@ -71,7 +85,7 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
         'Milena',
         'Samantha',
         'Sara',
-    ],
+    ].map(normalizeVoiceName),
     femaleVoices: [
         'Google UK English Female',
         'Amelie',
@@ -90,7 +104,7 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
         'Tessa',
         'Victoria',
         'Zuzana',
-    ],
+    ].map(normalizeVoiceName),
     maleVoices: [
         'Google UK English Male',
         'Daniel',
@@ -101,7 +115,7 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
         'Luca',
         'Thomas',
         'Xander',
-    ],
+    ].map(normalizeVoiceName),
 };
 
 /**
@@ -274,24 +288,34 @@ export class Adapter {
         if (requestedVoices.length) {
             let voice = requestedVoices
                 .reduce((voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
+                    voiceType = normalizeVoiceName(voiceType);
+
                     if (voice) {
                         return voice;
                     }
                     if (voiceType === 'male') {
-                        return availableVoices.find((voice) => maleVoices.includes(voice.name)) || null;
+                        return availableVoices.find((voice) =>
+                            maleVoices.includes(normalizeVoiceName(voice.name))
+                        ) || null;
                     }
                     if (voiceType === 'female') {
-                        return availableVoices.find((voice) => femaleVoices.includes(voice.name)) || null;
+                        return availableVoices.find((voice) =>
+                            femaleVoices.includes(normalizeVoiceName(voice.name))
+                        ) || null;
                     }
 
-                    return availableVoices.find((voice) => voice.name === voiceType) || null;
+                    return availableVoices.find((voice) =>
+                        normalizeVoiceName(voice.name) === voiceType
+                    ) || null;
                 }, null);
             if (voice) {
                 return voice;
             }
         }
 
-        let preferredAvailableVoices = availableVoices.filter((voice) => preferredVoices.includes(voice.name));
+        let preferredAvailableVoices = availableVoices.filter((voice) =>
+            preferredVoices.includes(normalizeVoiceName(voice.name))
+        );
         if (preferredAvailableVoices.length) {
             return preferredAvailableVoices[0];
         }
