@@ -33,6 +33,34 @@ function normalizeVoiceName(name: string) {
     return name.toLowerCase().replace(SAFARI_PREFIX, '');
 }
 
+let rejectInterval: Function|undefined;
+
+/**
+ * SpeechSynthesis API are not deterministic.
+ * Use this function to check the state of the service.
+ * @param callback The check function.
+ * @param time The interval time.
+ * @return A promise tha resolves when the check function returns a thruty value.
+ */
+function awaitState(callback: () => boolean, time = 100): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (rejectInterval) {
+            rejectInterval();
+            rejectInterval = undefined;
+        }
+        if (callback()) {
+            return resolve();
+        }
+        rejectInterval = reject;
+        let interval = setInterval(() => {
+            if (callback()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, time);
+    });
+}
+
 export interface SynthesisOptions {
     /**
      * A list of preferred voice names to use.
@@ -166,6 +194,7 @@ export class Adapter {
      */
     async pause() {
         speechSynthesis.pause();
+        await awaitState(() => speechSynthesis.paused);
     }
 
     /**
@@ -176,7 +205,9 @@ export class Adapter {
         if (utterances) {
             // store utterances queue.
             this.utterances = utterances;
-            return this.speakToken(await VOICES_PROMISE, 0);
+            let data = await this.speakToken(await VOICES_PROMISE, 0);
+            await awaitState(() => speechSynthesis.speaking);
+            return data;
         }
 
         // Just resume the playback.
