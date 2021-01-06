@@ -1,4 +1,4 @@
-import { Utterance } from './Utterance';
+import { SpeechToken, Utterance } from './Utterance';
 
 /**
  * Speech synthesis voices loader is async in Chrome.
@@ -54,6 +54,7 @@ function awaitState(callback: () => boolean, time = 100): Promise<void> {
         rejectInterval = reject;
         let interval = setInterval(() => {
             if (callback()) {
+                rejectInterval = undefined;
                 clearInterval(interval);
                 resolve();
             }
@@ -151,8 +152,9 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
  */
 export class Adapter {
     private options: SynthesisOptions;
-    private utterances?: Utterance[];
+    private utterances?: SpeechSynthesisUtterance[];
     private utterance?: SpeechSynthesisUtterance;
+    private current: number = 0;
 
     /**
      * Create an instance of the Synthesis adapter.
@@ -176,17 +178,19 @@ export class Adapter {
      * Cancel the current speaking.
      */
     async cancel(): Promise<void> {
-        if (!this.utterance) {
-            speechSynthesis.cancel();
-            return;
-        }
-
-        let utterance = this.utterance;
-        return new Promise((resolve) => {
-            delete this.utterance;
-            utterance.addEventListener('end', () => resolve());
-            speechSynthesis.cancel();
+        this.utterances?.forEach((speechUtterance) => {
+            speechUtterance.onstart = null;
+            speechUtterance.onresume = null;
+            speechUtterance.onpause = null;
+            speechUtterance.onboundary = null;
+            speechUtterance.onend = null;
         });
+        this.current = 0;
+        delete this.utterance;
+        delete this.utterances;
+        speechSynthesis.pause();
+        speechSynthesis.cancel();
+        await awaitState(() => !speechSynthesis.pending && !speechSynthesis.speaking);
     }
 
     /**
@@ -202,98 +206,75 @@ export class Adapter {
      * @param utterances A list of utterances to speak.
      */
     async play(utterances?: Utterance[]) {
-        if (utterances) {
-            // store utterances queue.
-            this.utterances = utterances;
-            let data = await this.speakToken(await VOICES_PROMISE, 0);
-            await awaitState(() => speechSynthesis.speaking);
-            return data;
-        }
+        if (this.utterance) {
+            // just resume the playback.
+            speechSynthesis.resume();
+        } else if (utterances) {
+            await this.cancel();
 
-        // Just resume the playback.
-        speechSynthesis.resume();
-    }
-
-    /**
-     * Speak a token.
-     * @param voices A list of available voices.
-     * @param index The index of the token to speech.
-     */
-    private speakToken(voices: SpeechSynthesisVoice[], index: number) {
-        if (!this.utterances) {
-            return;
-        }
-
-        let utterances = this.utterances;
-        let utterance = utterances[index];
-        let text = utterance.getTokens().map((token) => token.text).join(' ');
-        let speechUtterance = new SpeechSynthesisUtterance(text);
-        // we need to save a reference of the utterance in order to prevent gc. ¯\_(ツ)_/¯
-        this.utterance = speechUtterance;
-
-        // sometimes the browser does not dispatch end event after resume. ¯\_(ツ)_/¯
-        let timeout;
-        let tick = (stop = false) => {
-            clearTimeout(timeout);
-            if (!stop) {
-                timeout = setTimeout(async () => {
-                    // eslint-disable-next-line
-                    console.warn('Programmatically end the utterance', speechUtterance);
-                    await this.cancel();
-                    if (index !== utterances.length - 1) {
-                        this.speakToken(voices, index + 1);
+            let voices = await VOICES_PROMISE;
+            let speechUtterances = utterances
+                .map((utterance, index) => {
+                    let boundaries = 0;
+                    let text = utterance.getTokens().map((token) => token.text).join(' ');
+                    let speechUtterance = new SpeechSynthesisUtterance(text);
+                    // setup utterance properties.
+                    let voice = this.getVoice(voices, utterance.lang, utterance.voices);
+                    if (!voice) {
+                        return;
                     }
-                }, 2000);
-            }
-        };
 
-        // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
-        speechUtterance.addEventListener('start', () => {
-            utterance.started();
-            tick();
-        });
+                    speechUtterance.voice = voice;
+                    speechUtterance.lang = voice.lang;
+                    speechUtterance.rate = utterance.rate;
 
-        speechUtterance.addEventListener('resume', () => {
-            tick();
-        });
+                    // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
+                    speechUtterance.onstart = () => {
+                        this.current = index;
+                        this.utterance = speechUtterance;
+                        utterance.started();
+                    };
 
-        speechUtterance.addEventListener('pause', () => {
-            tick(true);
-        });
+                    speechUtterance.onpause = async () => {
+                        if (boundaries === utterance.getTokens().length) {
+                            speechSynthesis.pause();
+                            speechSynthesis.cancel();
+                            // sometimes the browser does not dispatch end event after resume
+                            // if last boundaries has been met.¯\_(ツ)_ /¯
+                            this.current++;
+                            delete this.utterance;
+                            utterance.ended();
+                        }
+                    };
 
-        speechUtterance.addEventListener('boundary', ({ charIndex }) => {
-            tick();
-            utterance.boundary(utterance.getToken(charIndex));
-        });
+                    speechUtterance.onboundary = ({ charIndex }) => {
+                        boundaries++;
+                        utterance.boundary(utterance.getToken(charIndex) as SpeechToken);
+                    };
 
-        speechUtterance.addEventListener('end', () => {
-            tick(true);
+                    speechUtterance.onend = () => {
+                        if (this.paused) {
+                            return;
+                        }
 
-            if (this.paused) {
-                return;
-            }
-            if (!this.utterance) {
-                return;
-            }
-            delete this.utterance;
-            utterance.ended();
-            if (index !== utterances.length - 1) {
-                this.speakToken(voices, index + 1);
-            }
-        });
+                        this.current++;
+                        delete this.utterance;
+                        utterance.ended();
+                        speechSynthesis.speak(speechUtterances[this.current]);
+                    };
 
-        // setup utterance properties.
-        let voice = this.getVoice(voices, utterance.lang, utterance.voices);
-        if (!voice) {
-            return;
+                    return speechUtterance;
+                })
+                .filter(Boolean) as SpeechSynthesisUtterance[];
+
+            // store utterances queue.
+            this.utterances = speechUtterances;
+            speechSynthesis.speak(speechUtterances[this.current]);
+        } else if (this.utterances) {
+            speechSynthesis.speak(this.utterances[this.current]);
         }
 
-        speechUtterance.voice = voice;
-        speechUtterance.lang = voice.lang;
-        speechUtterance.rate = utterance.rate;
-
-        // add the utterance to the queue.
-        speechSynthesis.speak(speechUtterance);
+        await awaitState(() => speechSynthesis.speaking && !speechSynthesis.paused);
     }
 
     /**
@@ -364,9 +345,11 @@ export class Adapter {
 }
 
 // ensure that speech synthesis is stop on page load.
+speechSynthesis.pause();
 speechSynthesis.cancel();
 
 // ensure that speech will stop on page unload.
 window.addEventListener('beforeunload', () => {
+    speechSynthesis.pause();
     speechSynthesis.cancel();
 });

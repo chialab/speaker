@@ -141,7 +141,7 @@
         <h1 lang="en-US">The Batman</h1>
         <p lang="it-IT">
             <span lang="en-US">Bruce Wayne</span>, insieme al padre <span lang="en-US">Thomas</span> e alla madre <span
-                lang="en-US">Martha</span>, va al cinema il 26 giugno per vedere <span style="--speak-voice: male;">Il segno di Zorro</span>; all'uscita i
+                lang="en-US">Martha</span>, va al cinema il 26 giugno per vedere <span style="--voice: male;">Il segno di Zorro</span>; all'uscita i
             genitori vengono rapinati da <span lang="en-US">Joe Chill</span> che nell'aggressione li uccide. Il
             bambino, rimasto traumatizzato, promette un giorno di iniziare a combattere i criminali con lo scopo di
             rendere la città di <span lang="en-US">Gotham</span> un luogo più sicuro. <span lang="en-US">Bruce</span>,
@@ -209,9 +209,6 @@
         }
 
         onClick(readButton, async (event) => {
-            if (speaker.active) {
-                await speaker.cancel();
-            }
             event.stopPropagation();
             event.preventDefault();
             let range = getRange();

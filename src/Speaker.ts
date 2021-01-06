@@ -122,8 +122,12 @@ export class Speaker extends Factory.Emitter {
         if (!this.active) {
             throw 'missing active speech';
         }
-        await this.adapter.cancel();
-        return await this.trigger('cancel');
+        try {
+            await this.adapter.cancel();
+            await this.trigger('cancel');
+        } catch {
+            //
+        }
     }
 
     /**
@@ -139,11 +143,14 @@ export class Speaker extends Factory.Emitter {
                 return;
             }
 
-            let data = await this.adapter.play();
-            return await this.trigger('play', data);
-        }
-        if (this.active) {
-            await this.adapter.cancel();
+            try {
+                let data = await this.adapter.play();
+                await this.trigger('play', data);
+            } catch {
+                //
+            }
+
+            return;
         }
 
         let tokens = this.findTokens(range);
@@ -159,8 +166,12 @@ export class Speaker extends Factory.Emitter {
         this.queue = queue;
         this.syncQueue(queue);
         await this.trigger('loading');
-        const data = await this.adapter.play(queue);
-        await this.trigger('play', data);
+        try {
+            let data = await this.adapter.play(queue);
+            await this.trigger('play', data);
+        } catch {
+            //
+        }
     }
 
     /**
@@ -170,8 +181,12 @@ export class Speaker extends Factory.Emitter {
         if (!this.active) {
             throw 'missing active speech';
         }
-        await this.adapter.pause();
-        return await this.trigger('pause');
+        try {
+            await this.adapter.pause();
+            await this.trigger('pause');
+        } catch {
+            //
+        }
     }
 
     /**
@@ -260,7 +275,7 @@ export class Speaker extends Factory.Emitter {
                 splitted[1] = splitted[1].substring(0, 2).toUpperCase();
             }
             language = splitted.join('-');
-            let voices = (getComputedStyle(token).getPropertyValue('--speak-voice') || '')
+            let voices = (getComputedStyle(token).getPropertyValue('--voice') || '')
                 .split(',')
                 .map((chunk) => chunk.trim())
                 .join(',');
@@ -337,8 +352,12 @@ export class Speaker extends Factory.Emitter {
             if (index === queue.length - 1) {
                 // when the last utterance ends, cancel the speech.
                 utterance.on('end', async () => {
-                    await this.adapter.cancel();
-                    this.trigger('end');
+                    try {
+                        await this.adapter.cancel();
+                        await this.trigger('end');
+                    } catch {
+                        //
+                    }
                 });
             }
         });
