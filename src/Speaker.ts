@@ -1,6 +1,7 @@
-import { Factory, merge } from '@chialab/proteins';
+import type { SpeechToken } from './Utterance';
+import { Factory } from '@chialab/proteins';
 import { chunk } from '@chialab/text-helpers';
-import { SpeechToken, Utterance } from './Utterance';
+import { Utterance } from './Utterance';
 import { Adapter } from './Adapter';
 
 export interface SpeechOptions {
@@ -43,12 +44,25 @@ export interface SpeechOptions {
     chunk: Object;
 }
 
+function getLang() {
+    /* global document, navigator */
+    if (typeof document !== 'undefined' && document.documentElement.lang) {
+        return document.documentElement.lang;
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.language) {
+        return navigator.language;
+    }
+
+    return 'en-US';
+}
+
 /**
  * Default options.
  */
 const DEFAULT_OPTIONS: SpeechOptions = {
     rate: 1,
-    lang: document.documentElement.lang || navigator.language || 'en-US',
+    lang: getLang(),
     tokenActive: 'speaker--word-active',
     sentenceActive: 'speaker--sentence-active',
     tokenSelector: '.tagger--speaking, [aria-label], [alt], math, [data-mathml]',
@@ -85,11 +99,18 @@ export class Speaker extends Factory.Emitter {
 
         this.element = root;
         this.adapter = new Adapter();
-        this.options = merge(DEFAULT_OPTIONS, options);
+        this.options = {
+            ...DEFAULT_OPTIONS,
+            ...options,
+            chunk: options.chunk !== false ? {
+                ...DEFAULT_OPTIONS.chunk,
+                ...options.chunk,
+            } : {},
+        };
         this.rate = this.options.rate;
         this.lang = this.options.lang;
 
-        let { chunk: chunkOptions } = this.options;
+        const { chunk: chunkOptions } = this.options;
         if (chunkOptions) {
             chunk(root, chunkOptions);
         }
@@ -135,8 +156,8 @@ export class Speaker extends Factory.Emitter {
      * @param range A selection range of tokens to speech.
      */
     async play(range?: Range) {
-        let active = this.active;
-        let paused = this.paused;
+        const active = this.active;
+        const paused = this.paused;
         this.range = range;
         if (active) {
             if (!paused) {
@@ -144,7 +165,7 @@ export class Speaker extends Factory.Emitter {
             }
 
             try {
-                let data = await this.adapter.play();
+                const data = await this.adapter.play();
                 await this.trigger('play', data);
             } catch {
                 //
@@ -153,7 +174,7 @@ export class Speaker extends Factory.Emitter {
             return;
         }
 
-        let tokens = this.findTokens(range);
+        const tokens = this.findTokens(range);
         if (!tokens.length) {
             await this.trigger('play');
             setTimeout(() => {
@@ -162,12 +183,12 @@ export class Speaker extends Factory.Emitter {
             return;
         }
 
-        let queue = this.createQueue(tokens);
+        const queue = this.createQueue(tokens);
         this.queue = queue;
         this.syncQueue(queue);
         await this.trigger('loading');
         try {
-            let data = await this.adapter.play(queue);
+            const data = await this.adapter.play(queue);
             await this.trigger('play', data);
         } catch {
             //
@@ -196,9 +217,9 @@ export class Speaker extends Factory.Emitter {
     async setRate(rate: number) {
         this.rate = rate;
 
-        let active = this.active;
-        let paused = this.paused;
-        let range = this.range;
+        const active = this.active;
+        const paused = this.paused;
+        const range = this.range;
         let cancelPromise = Promise.resolve();
         if (active) {
             cancelPromise = this.adapter.cancel();
@@ -219,7 +240,7 @@ export class Speaker extends Factory.Emitter {
      * @return A list of tokens.
      */
     private findTokens(range?: Range) {
-        let { tokenSelector, ignoreSelector } = this.options;
+        const { tokenSelector, ignoreSelector } = this.options;
 
         let tokens: Element[] = [];
         if (!range) {
@@ -231,8 +252,8 @@ export class Speaker extends Factory.Emitter {
 
         // remove tokens that are child of another token
         tokens = tokens.filter((token) => {
-            let parent = token.parentNode as HTMLElement|undefined;
-            let parentToken = parent?.closest(tokenSelector);
+            const parent = token.parentNode as HTMLElement|undefined;
+            const parentToken = parent?.closest(tokenSelector);
             if (!parentToken) {
                 return true;
             }
@@ -255,27 +276,29 @@ export class Speaker extends Factory.Emitter {
      * @param words A list of word tokens for the speech.
      */
     private createQueue(words: Element[]) {
+        /* global getComputedStyle */
+
         const { sentenceSelector, ariaAttributes } = this.options;
+        const queue: Utterance[] = [];
 
         let currentLang: string|undefined;
         let currentVoices = '';
         let currentSentence: Element|null = null;
         let tokens: SpeechToken[] = [];
         let currentText = '';
-        let queue: Utterance[] = [];
 
         for (let index = 0, len = words.length; index < len; index++) {
-            let token = words[index];
-            let sentenceElement = token.closest(sentenceSelector);
-            let langElement = token.closest('[lang]');
+            const token = words[index];
+            const sentenceElement = token.closest(sentenceSelector);
+            const langElement = token.closest('[lang]');
             let language = langElement?.getAttribute('lang') || this.lang;
-            let splitted = language.split(/[-_]/);
+            const splitted = language.split(/[-_]/);
             splitted[0] = splitted[0].substring(0, 2).toLowerCase();
             if (splitted[1]) {
                 splitted[1] = splitted[1].substring(0, 2).toUpperCase();
             }
             language = splitted.join('-');
-            let voices = (getComputedStyle(token).getPropertyValue('--voice') || '')
+            const voices = (getComputedStyle(token).getPropertyValue('--voice') || '')
                 .split(',')
                 .map((chunk) => chunk.trim())
                 .join(',');
@@ -283,7 +306,7 @@ export class Speaker extends Factory.Emitter {
             let text = (token as HTMLElement).innerText.trim();
             if (ariaAttributes) {
                 for (let i = 0; i < ariaAttributes.length; i++) {
-                    let attr = ariaAttributes[i];
+                    const attr = ariaAttributes[i];
                     if (token.hasAttribute(attr)) {
                         text = token.getAttribute(attr) || '';
                     }
@@ -309,7 +332,7 @@ export class Speaker extends Factory.Emitter {
                     end: currentText.length,
                 });
             } else if (currentLang !== language || currentVoices !== voices || currentSentence !== sentenceElement) {
-                let utterance = new Utterance(tokens, currentLang || this.lang, (currentVoices || '').split(','), this.rate);
+                const utterance = new Utterance(tokens, currentLang || this.lang, (currentVoices || '').split(','), this.rate);
                 queue.push(utterance);
                 currentLang = language;
                 currentVoices = voices;
@@ -324,7 +347,7 @@ export class Speaker extends Factory.Emitter {
                 }];
             }
             if (index === words.length - 1) {
-                let utterance = new Utterance(tokens, currentLang || this.lang, (currentVoices || '').split(','), this.rate);
+                const utterance = new Utterance(tokens, currentLang || this.lang, (currentVoices || '').split(','), this.rate);
                 queue.push(utterance);
             }
         }
@@ -371,8 +394,8 @@ export class Speaker extends Factory.Emitter {
         if (!this.active) {
             return;
         }
-        let { token, sentence } = speechToken;
-        let { tokenActive, sentenceActive } = this.options;
+        const { token, sentence } = speechToken;
+        const { tokenActive, sentenceActive } = this.options;
 
         // highlight current token.
         this.clearStaus(token, sentence);
@@ -392,8 +415,8 @@ export class Speaker extends Factory.Emitter {
      * @param sentence The new sentence.
      */
     private clearStaus(token?: Element|null, sentence?: Element|null) {
-        let { tokenActive, sentenceActive } = this.options;
-        let { currentToken, currentSentence } = this;
+        const { tokenActive, sentenceActive } = this.options;
+        const { currentToken, currentSentence } = this;
 
         if (currentSentence && !this.range && currentSentence !== sentence && currentSentence.classList.contains(sentenceActive)) {
             currentSentence.classList.remove(sentenceActive);

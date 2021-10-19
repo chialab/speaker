@@ -71,7 +71,7 @@ export class Utterance extends Factory.Emitter {
      * @return The found token at the given position.
      */
     getToken(charIndex: number) {
-        let token = this.tokens.find(({ start, end }) => charIndex >= start && charIndex < end);
+        const token = this.tokens.find(({ start, end }) => charIndex >= start && charIndex < end);
         if (!token) {
             return null;
         }

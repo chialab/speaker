@@ -1,4 +1,22 @@
-import { SpeechToken, Utterance } from './Utterance';
+import type { SpeechToken, Utterance } from './Utterance';
+
+export function getSpeechSynthesis() {
+    /* global window */
+    if (typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined') {
+        return window.speechSynthesis;
+    }
+
+    throw new Error('missing support for SpeechSynthesis');
+}
+
+export function getSpeechSynthesisUtterance() {
+    /* global window */
+    if (typeof window !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined') {
+        return window.SpeechSynthesisUtterance;
+    }
+
+    throw new Error('missing support for SpeechSynthesisUtterance');
+}
 
 /**
  * Speech synthesis voices loader is async in Chrome.
@@ -6,7 +24,7 @@ import { SpeechToken, Utterance } from './Utterance';
  */
 const VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>> = new Promise((resolve) => {
     const getVoices = () => {
-        let voices = speechSynthesis.getVoices();
+        let voices = getSpeechSynthesis().getVoices();
         if (voices.length) {
             voices = [...voices].filter((voice) => voice.localService);
             resolve(voices);
@@ -15,9 +33,13 @@ const VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>> = new Promise((resolv
         return false;
     };
     if (!getVoices()) {
-        speechSynthesis.onvoiceschanged = getVoices;
+        getSpeechSynthesis().onvoiceschanged = getVoices;
     }
 });
+
+export function getVoices() {
+    return VOICES_PROMISE;
+}
 
 /**
  * Safari voices names prefix.
@@ -52,7 +74,7 @@ function awaitState(callback: () => boolean, time = 100): Promise<void> {
             return resolve();
         }
         rejectInterval = reject;
-        let interval = setInterval(() => {
+        const interval = setInterval(() => {
             if (callback()) {
                 rejectInterval = undefined;
                 clearInterval(interval);
@@ -171,13 +193,14 @@ export class Adapter {
      * Get the pause state of the adapter.
      */
     get paused() {
-        return speechSynthesis.paused;
+        return getSpeechSynthesis().paused;
     }
 
     /**
      * Cancel the current speaking.
      */
     async cancel(): Promise<void> {
+        const speechSynthesis = getSpeechSynthesis();
         this.utterances?.forEach((speechUtterance) => {
             speechUtterance.onstart = null;
             speechUtterance.onresume = null;
@@ -197,6 +220,7 @@ export class Adapter {
      * Pause the current speaking.
      */
     async pause() {
+        const speechSynthesis = getSpeechSynthesis();
         speechSynthesis.pause();
         await awaitState(() => speechSynthesis.paused);
     }
@@ -206,20 +230,22 @@ export class Adapter {
      * @param utterances A list of utterances to speak.
      */
     async play(utterances?: Utterance[]) {
+        const speechSynthesis = getSpeechSynthesis();
         if (this.utterance) {
             // just resume the playback.
             speechSynthesis.resume();
         } else if (utterances) {
             await this.cancel();
 
-            let voices = await VOICES_PROMISE;
-            let speechUtterances = utterances
+            const voices = await getVoices();
+            const speechUtterances = utterances
                 .map((utterance, index) => {
+                    const text = utterance.getTokens().map((token) => token.text).join(' ');
+                    const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
+                    const speechUtterance = new SpeechSynthesisUtterance(text);
                     let boundaries = 0;
-                    let text = utterance.getTokens().map((token) => token.text).join(' ');
-                    let speechUtterance = new SpeechSynthesisUtterance(text);
                     // setup utterance properties.
-                    let voice = this.getVoice(voices, utterance.lang, utterance.voices);
+                    const voice = this.getVoice(voices, utterance.lang, utterance.voices);
                     if (!voice) {
                         return;
                     }
@@ -284,12 +310,12 @@ export class Adapter {
      * @param requestedVoices The requested voices.
      */
     private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
-        let { preferredVoices, maleVoices, femaleVoices } = this.options;
+        const { preferredVoices, maleVoices, femaleVoices } = this.options;
 
         requestedLang = requestedLang.toLowerCase().replace('_', '-');
-        let availableVoices = voices.filter((voice) => {
-            let voiceLang = voice.lang.toLowerCase().replace('_', '-');
-            let shortVoiceLang = voiceLang.split('-')[0];
+        const availableVoices = voices.filter((voice) => {
+            const voiceLang = voice.lang.toLowerCase().replace('_', '-');
+            const shortVoiceLang = voiceLang.split('-')[0];
             return voiceLang === requestedLang || shortVoiceLang === requestedLang;
         });
 
@@ -298,7 +324,7 @@ export class Adapter {
         }
 
         if (requestedVoices.length) {
-            let voice = requestedVoices
+            const voice = requestedVoices
                 .reduce((voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
                     voiceType = normalizeVoiceName(voiceType);
 
@@ -325,7 +351,7 @@ export class Adapter {
             }
         }
 
-        let preferredAvailableVoices = availableVoices.filter((voice) =>
+        const preferredAvailableVoices = availableVoices.filter((voice) =>
             preferredVoices.includes(normalizeVoiceName(voice.name))
         );
         if (preferredAvailableVoices.length) {
@@ -344,12 +370,17 @@ export class Adapter {
     }
 }
 
-// ensure that speech synthesis is stop on page load.
-speechSynthesis.pause();
-speechSynthesis.cancel();
-
-// ensure that speech will stop on page unload.
-window.addEventListener('beforeunload', () => {
+try {
+    const speechSynthesis = getSpeechSynthesis();
+    // ensure that speech synthesis is stop on page load.
     speechSynthesis.pause();
     speechSynthesis.cancel();
-});
+
+    // ensure that speech will stop on page unload.
+    window.addEventListener('beforeunload', () => {
+        speechSynthesis.pause();
+        speechSynthesis.cancel();
+    });
+} catch {
+    //
+}
