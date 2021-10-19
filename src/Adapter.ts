@@ -1,8 +1,18 @@
 import type { SpeechToken, Utterance } from './Utterance';
 
+export function checkSupport() {
+    if (typeof window !== 'undefined' &&
+        typeof window.speechSynthesis !== 'undefined' &&
+        typeof window.SpeechSynthesisUtterance !== 'undefined') {
+        return true;
+    }
+
+    return false;
+}
+
 export function getSpeechSynthesis() {
     /* global window */
-    if (typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined') {
+    if (checkSupport()) {
         return window.speechSynthesis;
     }
 
@@ -11,7 +21,7 @@ export function getSpeechSynthesis() {
 
 export function getSpeechSynthesisUtterance() {
     /* global window */
-    if (typeof window !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined') {
+    if (checkSupport()) {
         return window.SpeechSynthesisUtterance;
     }
 
