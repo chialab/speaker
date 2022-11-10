@@ -102,6 +102,10 @@ export interface SpeakerLoadingEvent extends Event {
     data: undefined;
 }
 
+export interface SpeakerErrorEvent extends Event {
+    data: Error;
+}
+
 /**
  * A Text2Speech library which highlights words when an utterance is speaking.
  * It uses adapters for multiple implementations like native browser speech synthesis or ReadSpeaker.
@@ -115,6 +119,7 @@ export class Speaker extends Emitter<{
     play: SpeakerPlayEvent;
     pause: SpeakerPauseEvent;
     loading: SpeakerLoadingEvent;
+    error: SpeakerErrorEvent;
 }> {
     #rate: number;
     #lang: string;
@@ -198,8 +203,8 @@ export class Speaker extends Emitter<{
             try {
                 await this.#adapter.play();
                 await this.trigger('play');
-            } catch {
-                //
+            } catch (err) {
+                await this.trigger('error', err as Error);
             }
 
             return;
@@ -258,9 +263,16 @@ export class Speaker extends Emitter<{
                             await this.trigger('play');
                             played = true;
                         }
-                        await dfd.promise();
-                    } catch {
-                        return;
+
+                        try {
+                            await dfd.promise();
+                        } catch {
+                            return;
+                        }
+                    } catch (err) {
+                        await this.trigger('error', err as Error || new Error('Unknown error'));
+                        this.clear();
+                        throw err;
                     }
 
                     sentences = [];

@@ -34,22 +34,35 @@ export function getSpeechSynthesisUtterance() {
  * Speech synthesis voices loader is async in Chrome.
  * Promisify it.
  */
-const VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>> = new Promise((resolve) => {
-    const getVoices = () => {
-        let voices = getSpeechSynthesis().getVoices();
-        if (voices.length) {
-            voices = [...voices].filter((voice) => voice.localService);
-            resolve(voices);
-            return true;
-        }
-        return false;
-    };
-    if (!getVoices()) {
-        getSpeechSynthesis().onvoiceschanged = getVoices;
-    }
-});
+let VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>>;
 
-export function getVoices() {
+/**
+ * Get speech synthesis voices.
+ * @param timeoutTime Timeout time in milliseconds.
+ * @returns A promise that resolves voices.
+ */
+export function getVoices(timeoutTime: number = 2000) {
+    if (!VOICES_PROMISE) {
+        VOICES_PROMISE = new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Cannot retrieve voices'));
+            }, timeoutTime);
+
+            const getVoices = () => {
+                let voices = getSpeechSynthesis().getVoices();
+                if (voices.length) {
+                    clearTimeout(timeout);
+                    voices = [...voices].filter((voice) => voice.localService);
+                    resolve(voices);
+                    return true;
+                }
+                return false;
+            };
+            if (!getVoices()) {
+                getSpeechSynthesis().onvoiceschanged = getVoices;
+            }
+        });
+    }
     return VOICES_PROMISE;
 }
 
@@ -325,6 +338,9 @@ export class Adapter {
                         this.#currentUtterance = null;
                         utterance.ended();
                         speechSynthesis.speak(speechUtterances[index + 1]);
+                        if (speechSynthesis.paused) {
+                            speechSynthesis.resume();
+                        }
                     };
                 }
 
@@ -335,6 +351,9 @@ export class Adapter {
         // store utterances queue.
         this.#utterances = speechUtterances;
         speechSynthesis.speak(speechUtterances[0]);
+        if (speechSynthesis.paused) {
+            speechSynthesis.resume();
+        }
 
         await awaitState(() => speechSynthesis.speaking && !speechSynthesis.paused);
 

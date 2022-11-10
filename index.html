@@ -245,8 +245,11 @@
                 const normalized = [];
                 for (let i = 0; i < rects.length; i++) {
                     const rect = rects[i];
+                    if (!rect.width || !rect.height) {
+                        continue;
+                    }
                     const last = normalized[normalized.length - 1];
-                    if (!last || last.top !== rect.top || last.height !== rect.height || (last.left + last.width) !== rect.left) {
+                    if (!last || last.top !== rect.top || last.height !== rect.height || ((rect.left - (last.left + last.width)) > 1)) {
                         normalized.push({
                             top: rect.top,
                             left: rect.left,
@@ -369,6 +372,10 @@
                 lastSentence = sentence;
             }
             tokenHighlighter.setRange(createRange(token));
+        });
+
+        speaker.on('error', (err) => {
+            alert(err.message);
         });
 
         document.addEventListener('click', (event) => {
