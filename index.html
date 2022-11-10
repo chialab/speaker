@@ -7,31 +7,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Speaker</title>
     <style>
-        @import url('https://fonts.googleapis.com/css?family=Merriweather');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
         @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
-        :root {
-            --speaker-sentence-active-color: rgb(255, 243, 189);
-            --speaker-word-active-color: rgb(255, 208, 0);
-        }
-
-        .speaker--sentence-active {
-            background: var(--speaker-sentence-active-color);
-        }
-
-        .speaker--word-active:not(img) {
-            background: var(--speaker-word-active-color);
-        }
-
-        img.speaker--word-active {
-            box-shadow: 0 0 0 4px var(--speaker-word-active-color);
-        }
 
         html,
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+            font-family: 'Inter', sans-serif;
+            font-size: 18px;
         }
 
         * {
@@ -45,12 +29,11 @@
         }
 
         article {
-            width: 100%;
-            max-width: 46em;
+            width: 60ch;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 1em;
-            font-family: 'Merriweather', serif;
-            line-height: 1.8em;
+            padding: 2em 1em;
+            line-height: 1.4;
         }
 
         article *::selection {
@@ -121,6 +104,51 @@
         nav select + select {
             margin-left: 1em;
         }
+
+        .highlightable {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+        }
+
+        .highlightable div {
+            box-sizing: content-box;
+            position: absolute;
+            margin-top: -4px;
+            margin-left: -4px;
+            background: var(--highlight-color, #ffc800);
+            border: solid 4px transparent;
+            transition: all 150ms;
+        }
+
+        .highlightable div:first-child {
+            border-top-left-radius: 10px;
+        }
+
+        .highlightable div:first-child:only-child {
+            border-bottom-left-radius: 10px;
+        }
+
+        .highlightable div:first-child:not(:only-child) {
+            border-top-right-radius: 10px;
+        }
+
+        .highlightable div:last-child {
+            border-bottom-right-radius: 10px;
+        }
+
+        .highlightable div:last-child:only-child {
+            border-top-right-radius: 10px;
+        }
+
+        .highlightable div:last-child:not(:only-child) {
+            border-bottom-left-radius: 10px;
+        }
+
     </style>
 </head>
 
@@ -168,54 +196,116 @@
         </footer>
     </article>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-    <script type="text/javascript" src="dist/umd/speaker.js"></script>
-    <script>
-        let speaker;
-        let readButton = document.querySelector('#all');
-        let playButton = document.querySelector('#play');
-        let stopButton = document.querySelector('#stop');
-        let rateSelect = document.querySelector('#rate');
+    <script type="module">
+        import { Speaker, createRange } from './dist/esm/speaker.js';
 
-        let articles = document.querySelectorAll('article');
-        articles.forEach((article) => {
-            speaker = new Speaker.Speaker(article, {
-                chunk: {
-                    excludeSelector: [
-                        'head',
-                        'title',
-                        'meta',
-                        'script',
-                        'style',
-                        'iframe',
-                        'img',
-                        'object',
-                        'audio',
-                        'video',
-                        'svg',
-                        'math',
-                    ].join(', '),
-                },
-            });
-            console.log(speaker);
-        });
+        const readButton = document.querySelector('#all');
+        const playButton = document.querySelector('#play');
+        const stopButton = document.querySelector('#stop');
+        const rateSelect = document.querySelector('#rate');
+        const article = document.querySelector('article');
+        const speaker = new Speaker(article);
+        console.log(speaker);
 
-        function onClick(element, callback) {
-            element.addEventListener('click', callback);
+        class Highlighter {
+            #element = document.createElement('div');
+            #range = null;
+            #frameRequest = null;
+
+            constructor() {
+                document.body.appendChild(this.#element);
+                this.#element.classList.add('highlightable')
+                this.hide();
+            }
+
+            setRange(range) {
+                this.#range = range;
+                if (range) {
+                    this.show();
+                } else {
+                    this.hide();
+                }
+            }
+
+            show() {
+                this.#element.style.display = 'block';
+                this.draw();
+            }
+
+            hide() {
+                if (this.#frameRequest) {
+                    cancelAnimationFrame(this.#frameRequest);
+                }
+                this.#frameRequest = null;
+                this.#element.style.display = 'none';
+                this.#element.innerHTML = '';
+            }
+
+            normalizeRects(rects) {
+                const normalized = [];
+                for (let i = 0; i < rects.length; i++) {
+                    const rect = rects[i];
+                    const last = normalized[normalized.length - 1];
+                    if (!last || last.top !== rect.top || last.height !== rect.height || (last.left + last.width) !== rect.left) {
+                        normalized.push({
+                            top: rect.top,
+                            left: rect.left,
+                            width: rect.width,
+                            height: rect.height,
+                        });
+                    } else {
+                        last.width += rect.width;
+                    }
+                }
+                return normalized;
+            }
+
+            draw() {
+                if (!this.#range) {
+                    return;
+                }
+
+                const rects = this.normalizeRects(this.#range.getClientRects());
+                const element = this.#element;
+                const childNodes = element.children;
+                let i;
+                for (i = 0; i < rects.length; i++) {
+                    const rect = rects[i];
+                    const box = (childNodes.item(i) || document.createElement('div'));
+                    if (childNodes.length === i) {
+                        element.appendChild(box);
+                    }
+                    Object.assign(box.style, {
+                        top: `${rect.top}px`,
+                        left: `${rect.left}px`,
+                        width: `${rect.width}px`,
+                        height: `${rect.height}px`,
+                    });
+                }
+                while (i <= childNodes.length - 1) {
+                    element.removeChild(childNodes.item(childNodes.length - 1));
+                }
+                this.#frameRequest = requestAnimationFrame(() => this.draw());
+            }
         }
+
+        const blockHighlighter = new Highlighter();
+        const sentenceHighlighter = new Highlighter();
+        const tokenHighlighter = new Highlighter();
 
         function getRange() {
             let selection = window.getSelection();
             return (selection.rangeCount && !selection.isCollapsed && selection.getRangeAt(0)) || null;
         }
 
-        onClick(readButton, async (event) => {
+        readButton.addEventListener('click', async (event) => {
             event.stopPropagation();
             event.preventDefault();
             let range = getRange();
             speaker.play(range);
         });
 
-        onClick(playButton, (event) => {
+        playButton.addEventListener('click', (event) => {
             event.stopPropagation();
             event.preventDefault();
 
@@ -226,7 +316,7 @@
             }
         });
 
-        onClick(stopButton, (event) => {
+        stopButton.addEventListener('click', (event) => {
             event.stopPropagation();
             event.preventDefault();
             if (speaker.active) {
@@ -251,11 +341,34 @@
         speaker.on('cancel', () => {
             playButton.disabled = true;
             stopButton.disabled = true;
+            blockHighlighter.setRange(null);
+            sentenceHighlighter.setRange(null);
+            tokenHighlighter.setRange(null);
         });
 
         speaker.on('end', () => {
             playButton.disabled = true;
             stopButton.disabled = true;
+            blockHighlighter.setRange(null);
+            sentenceHighlighter.setRange(null);
+            tokenHighlighter.setRange(null);
+        });
+
+        let lastBlock;
+        let lastSentence;
+        speaker.on('boundary', ({ token, sentence, block }) => {
+            console.log('>', token);
+            // if (lastBlock !== block) {
+            //     blockHighlighter.setRange(null);
+            //     blockHighlighter.setRange(block ? createRange(...block.tokens) : null);
+            //     lastBlock = block;
+            // }
+            if (lastSentence !== sentence) {
+                sentenceHighlighter.setRange(null);
+                sentenceHighlighter.setRange(sentence ? createRange(...sentence.tokens) : null);
+                lastSentence = sentence;
+            }
+            tokenHighlighter.setRange(createRange(token));
         });
 
         document.addEventListener('click', (event) => {

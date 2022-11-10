@@ -1,9 +1,7 @@
-
-
 /**
  * @type {import('@chialab/rna-config-loader').ProjectConfig}
  */
- const config = {
+const config = {
     entrypoints: [
         {
             input: 'src/index.ts',
@@ -19,7 +17,7 @@
         },
     ],
     bundle: true,
-    minify: true,
+    // minify: true,
 };
 
 export default config;
