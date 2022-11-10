@@ -53,6 +53,10 @@ export function getVoices(timeoutTime: number = 2000) {
                 if (voices.length) {
                     clearTimeout(timeout);
                     voices = [...voices].filter((voice) => voice.localService);
+                    if (!voices.length) {
+                        reject(new Error('Cannot retrieve offline voices'));
+                        return false;
+                    }
                     resolve(voices);
                     return true;
                 }
