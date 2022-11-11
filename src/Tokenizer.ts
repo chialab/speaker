@@ -155,12 +155,13 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     let startNode: Text | null = null;
     let endNode: Text | null = null;
 
-    let currentBlock: BoundaryToken[] = [];
-    let currentSentence: BoundaryToken[] = [];
+    let currentBlockTokens: BoundaryToken[] = [];
+    let currentSentenceTokens: BoundaryToken[] = [];
 
     let startOffset = 0;
     let endOffset = 0;
 
+    let currentBlock: Element | null = null;
     let currentNode: Node | null = null;
     // eslint-disable-next-line no-cond-assign
     tokenIterator: while (currentNode = walker.nextNode()) {
@@ -218,10 +219,10 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         yield token;
                     }
                     if (collectSentences) {
-                        currentSentence.push(token);
+                        currentSentenceTokens.push(token);
                     }
                     if (collectBlocks) {
-                        currentBlock.push(token);
+                        currentBlockTokens.push(token);
                     }
 
                     chunk = '';
@@ -230,27 +231,29 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 }
 
                 if (isBlockElement) {
-                    if (collectSentences && currentSentence.length) {
+                    currentBlock = currentNode as Element;
+
+                    if (collectSentences && currentSentenceTokens.length) {
                         yield {
                             type: TokenType.SENTENCE,
-                            startNode: currentSentence[0].startNode,
-                            startOffset: currentSentence[0].startOffset,
-                            endNode: currentSentence[currentSentence.length - 1].endNode,
-                            endOffset: currentSentence[currentSentence.length - 1].endOffset,
-                            tokens: currentSentence,
+                            startNode: currentSentenceTokens[0].startNode,
+                            startOffset: currentSentenceTokens[0].startOffset,
+                            endNode: currentSentenceTokens[currentSentenceTokens.length - 1].endNode,
+                            endOffset: currentSentenceTokens[currentSentenceTokens.length - 1].endOffset,
+                            tokens: currentSentenceTokens,
                         } as SentenceToken;
-                        currentSentence = [];
+                        currentSentenceTokens = [];
                     }
-                    if (collectBlocks && currentBlock.length) {
+                    if (collectBlocks && currentBlockTokens.length) {
                         yield {
                             type: TokenType.BLOCK,
-                            startNode: currentBlock[0].startNode,
-                            startOffset: currentBlock[0].startOffset,
-                            endNode: currentBlock[currentBlock.length - 1].endNode,
-                            endOffset: currentBlock[currentBlock.length - 1].endOffset,
-                            tokens: currentBlock,
+                            startNode: currentBlockTokens[0].startNode,
+                            startOffset: currentBlockTokens[0].startOffset,
+                            endNode: currentBlockTokens[currentBlockTokens.length - 1].endNode,
+                            endOffset: currentBlockTokens[currentBlockTokens.length - 1].endOffset,
+                            tokens: currentBlockTokens,
                         } as BlockToken;
-                        currentBlock = [];
+                        currentBlockTokens = [];
                     }
                 }
 
@@ -272,40 +275,91 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         yield token;
                     }
                     if (collectSentences) {
-                        currentSentence.push(token);
+                        currentSentenceTokens.push(token);
                     }
                     if (collectBlocks) {
-                        currentBlock.push(token);
+                        currentBlockTokens.push(token);
                     }
 
                     if (isBlockElement) {
-                        if (collectSentences && currentSentence.length) {
+                        if (collectSentences && currentSentenceTokens.length) {
                             yield {
                                 type: TokenType.SENTENCE,
-                                startNode: currentSentence[0].startNode,
-                                startOffset: currentSentence[0].startOffset,
-                                endNode: currentSentence[currentSentence.length - 1].endNode,
-                                endOffset: currentSentence[currentSentence.length - 1].endOffset,
-                                tokens: currentSentence,
+                                startNode: currentSentenceTokens[0].startNode,
+                                startOffset: currentSentenceTokens[0].startOffset,
+                                endNode: currentSentenceTokens[currentSentenceTokens.length - 1].endNode,
+                                endOffset: currentSentenceTokens[currentSentenceTokens.length - 1].endOffset,
+                                tokens: currentSentenceTokens,
                             } as SentenceToken;
-                            currentSentence = [];
+                            currentSentenceTokens = [];
                         }
-                        if (collectBlocks && currentBlock.length) {
+                        if (collectBlocks && currentBlockTokens.length) {
                             yield {
                                 type: TokenType.BLOCK,
-                                startNode: currentBlock[0].startNode,
-                                startOffset: currentBlock[0].startOffset,
-                                endNode: currentBlock[currentBlock.length - 1].endNode,
-                                endOffset: currentBlock[currentBlock.length - 1].endOffset,
-                                tokens: currentBlock,
+                                startNode: currentBlockTokens[0].startNode,
+                                startOffset: currentBlockTokens[0].startOffset,
+                                endNode: currentBlockTokens[currentBlockTokens.length - 1].endNode,
+                                endOffset: currentBlockTokens[currentBlockTokens.length - 1].endOffset,
+                                tokens: currentBlockTokens,
                             } as BlockToken;
-                            currentBlock = [];
+                            currentBlockTokens = [];
                         }
                     }
                 }
             }
 
             continue;
+        }
+
+        if (currentBlock && !currentBlock.contains(currentNode)) {
+            currentBlock = null;
+
+            if (chunk && endNode) {
+                startNode = startNode ?? endNode;
+
+                const token: BoundaryToken = {
+                    type: TokenType.BOUNDARY,
+                    text: chunk,
+                    startNode,
+                    startOffset,
+                    endNode,
+                    endOffset: (endNode.textContent || '').length,
+                    lang: getNodeLang(startNode),
+                    voice: getNodeVoice(startNode),
+                };
+
+                if (collectBoundaries) {
+                    yield token;
+                }
+                if (collectSentences) {
+                    currentSentenceTokens.push(token);
+                    yield {
+                        type: TokenType.SENTENCE,
+                        startNode: currentSentenceTokens[0].startNode,
+                        startOffset: currentSentenceTokens[0].startOffset,
+                        endNode: currentSentenceTokens[currentSentenceTokens.length - 1].endNode,
+                        endOffset: currentSentenceTokens[currentSentenceTokens.length - 1].endOffset,
+                        tokens: currentSentenceTokens,
+                    } as SentenceToken;
+                    currentSentenceTokens = [];
+                }
+                if (collectBlocks) {
+                    currentBlockTokens.push(token);
+                    yield {
+                        type: TokenType.BLOCK,
+                        startNode: currentBlockTokens[0].startNode,
+                        startOffset: currentBlockTokens[0].startOffset,
+                        endNode: currentBlockTokens[currentBlockTokens.length - 1].endNode,
+                        endOffset: currentBlockTokens[currentBlockTokens.length - 1].endOffset,
+                        tokens: currentBlockTokens,
+                    } as BlockToken;
+                    currentBlockTokens = [];
+                }
+
+                chunk = '';
+                startNode = null;
+                startOffset = 0;
+            }
         }
 
         const text = currentNode.textContent || '';
@@ -321,7 +375,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
         // eslint-disable-next-line no-cond-assign
         while (match = regex.exec(text)) {
             startNode = startNode ?? endNode;
-            endOffset = match.index + 1;
+            endOffset = chunk ? match.index : match.index + 1;
             chunk += text.substring(currentStartOffset, endOffset);
 
             const token: BoundaryToken = {
@@ -338,30 +392,30 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 yield token;
             }
             if (collectSentences) {
-                currentSentence.push(token);
+                currentSentenceTokens.push(token);
                 if (/[.!?](\s+|$)/.test(chunk)) {
                     yield {
                         type: TokenType.SENTENCE,
-                        startNode: currentSentence[0].startNode,
-                        startOffset: currentSentence[0].startOffset,
+                        startNode: currentSentenceTokens[0].startNode,
+                        startOffset: currentSentenceTokens[0].startOffset,
                         endNode: token.endNode,
                         endOffset: token.endOffset,
-                        tokens: currentSentence,
+                        tokens: currentSentenceTokens,
                     } as SentenceToken;
 
-                    currentSentence = [];
+                    currentSentenceTokens = [];
                 }
             }
             if (collectBlocks) {
-                currentBlock.push(token);
+                currentBlockTokens.push(token);
             }
 
             chunk = '';
             startNode = endNode;
-            startOffset = currentStartOffset = endOffset + match[0].length - 1;
+            startOffset = currentStartOffset = match.index + match[0].length;
         }
 
-        chunk += text.substring(startOffset);
+        chunk += text.substring(currentStartOffset);
         if (!chunk) {
             chunk = '';
             startNode = null;
@@ -388,31 +442,31 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             yield token;
         }
         if (collectSentences) {
-            currentSentence.push(token);
+            currentSentenceTokens.push(token);
         }
         if (collectBlocks) {
-            currentBlock.push(token);
+            currentBlockTokens.push(token);
         }
     }
 
-    if (collectSentences && currentSentence.length) {
+    if (collectSentences && currentSentenceTokens.length) {
         yield {
             type: TokenType.SENTENCE,
-            startNode: currentSentence[0].startNode,
-            startOffset: currentSentence[0].startOffset,
-            endNode: currentSentence[currentSentence.length - 1].endNode,
-            endOffset: currentSentence[currentSentence.length - 1].endOffset,
-            tokens: currentSentence,
+            startNode: currentSentenceTokens[0].startNode,
+            startOffset: currentSentenceTokens[0].startOffset,
+            endNode: currentSentenceTokens[currentSentenceTokens.length - 1].endNode,
+            endOffset: currentSentenceTokens[currentSentenceTokens.length - 1].endOffset,
+            tokens: currentSentenceTokens,
         } as SentenceToken;
     }
-    if (collectBlocks && currentBlock.length) {
+    if (collectBlocks && currentBlockTokens.length) {
         yield {
             type: TokenType.BLOCK,
-            startNode: currentBlock[0].startNode,
-            startOffset: currentBlock[0].startOffset,
-            endNode: currentBlock[currentBlock.length - 1].endNode,
-            endOffset: currentBlock[currentBlock.length - 1].endOffset,
-            tokens: currentBlock,
+            startNode: currentBlockTokens[0].startNode,
+            startOffset: currentBlockTokens[0].startOffset,
+            endNode: currentBlockTokens[currentBlockTokens.length - 1].endNode,
+            endOffset: currentBlockTokens[currentBlockTokens.length - 1].endOffset,
+            tokens: currentBlockTokens,
         } as BlockToken;
     }
 }

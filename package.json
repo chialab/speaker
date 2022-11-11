@@ -32,13 +32,16 @@
   "scripts": {
     "build": "rimraf dist && yarn types && rna build",
     "types": "rimraf types && tsc --emitDeclarationOnly",
+    "test": "rna test:browser --coverage",
     "lint": "eslint src",
     "prepack": "yarn build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.23.0",
     "@chialab/eslint-config": "^3.0.0",
+    "@chialab/ginsenghino": "^1.2.0",
     "@chialab/rna": "^0.17.0",
+    "@chialab/rna-browser-test-runner": "^0.17.1",
     "@chialab/rna-bundler": "^0.17.6",
     "eslint": "^*.0.0",
     "rimraf": "^3.0.2",
