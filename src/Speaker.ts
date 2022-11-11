@@ -32,10 +32,10 @@ export interface SpeakerOptions {
 /**
  * Speaker highlighter options.
  */
-export interface SpeakerHighlighterOptions extends HighlighterOptions {
-    boundaries?: boolean;
-    sentences?: boolean;
-    blocks?: boolean;
+export interface SpeakerHighlighterOptions {
+    boundaries?: boolean | HighlighterOptions;
+    sentences?: boolean | HighlighterOptions;
+    blocks?: boolean | HighlighterOptions;
 }
 
 /**
@@ -363,9 +363,9 @@ export class Speaker extends Emitter<{
      * @param options Highlighter options.
      */
     setupHighlighter(options: SpeakerHighlighterOptions = {}) {
-        const boundaryHighlighter = options.boundaries !== false ? new Highlighter(options) : null;
-        const sentenceHighlighter = options.sentences !== false ? new Highlighter(options) : null;
-        const blockHighlighter = options.blocks ? new Highlighter(options) : null;
+        const boundaryHighlighter = options.boundaries !== false ? new Highlighter(options.boundaries === true ? {} : options.boundaries) : null;
+        const sentenceHighlighter = options.sentences !== false ? new Highlighter(options.sentences === true ? {} : options.sentences) : null;
+        const blockHighlighter = options.blocks ? new Highlighter(options.blocks === true ? {} : options.blocks) : null;
 
         this.on('cancel', () => {
             boundaryHighlighter?.setRange(null);

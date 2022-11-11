@@ -50,6 +50,7 @@ export class Highlighter {
     #element: Element;
     #currentRange: Range | null = null;
     #lastFrameRequest: number | null = null;
+    #shown = false;
 
     constructor(options: HighlighterOptions = {}) {
         const root = options.root ?? document.body;
@@ -68,8 +69,10 @@ export class Highlighter {
     setRange(range: Range | null) {
         this.#currentRange = range;
         if (range) {
-            this.show();
-        } else {
+            if (!this.#shown) {
+                this.show();
+            }
+        } else if (this.#shown) {
             this.hide();
         }
     }
@@ -78,23 +81,19 @@ export class Highlighter {
      * Show highlighting rects.
      */
     show() {
-        this.update();
-        if (!this.#element.isConnected) {
-            this.#root.appendChild(this.#element);
-        }
+        this.#shown = true;
+        this.liveUpdate(false);
+        this.#root.appendChild(this.#element);
     }
 
     /**
      * Hide highlighting rects.
      */
     hide() {
-        if (this.#lastFrameRequest) {
-            cancelAnimationFrame(this.#lastFrameRequest);
-        }
+        this.#shown = false;
+        this.liveUpdate(false);
         this.#lastFrameRequest = null;
-        if (this.#element.isConnected) {
-            this.#root.removeChild(this.#element);
-        }
+        this.#root.removeChild(this.#element);
         this.#element.innerHTML = '';
     }
 
@@ -126,8 +125,6 @@ export class Highlighter {
         while (i <= childNodes.length - 1) {
             element.removeChild(childNodes.item(childNodes.length - 1) as Element);
         }
-
-        this.#lastFrameRequest = requestAnimationFrame(() => this.update());
     }
 
     /**
@@ -139,5 +136,20 @@ export class Highlighter {
         element.classList.add(this.#options.rectClass ?? 'highlighter-rect');
 
         return element;
+    }
+
+    /**
+     * Start or stop live update.
+     * @param active Should enable or disable live update.
+     */
+    private liveUpdate(active: boolean) {
+        if (active) {
+            this.update();
+            this.#lastFrameRequest = requestAnimationFrame(() => this.liveUpdate(true));
+        } else {
+            if (this.#lastFrameRequest) {
+                cancelAnimationFrame(this.#lastFrameRequest);
+            }
+        }
     }
 }

@@ -110,20 +110,27 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             pointer-events: none;
             mix-blend-mode: multiply;
+            overflow: hidden;
         }
 
-        .highlighter-rect {
+        .highlighter-rect,
+        .highlighter-rect-word {
             box-sizing: content-box;
             position: absolute;
             margin-top: -4px;
             margin-left: -4px;
             background: var(--highlight-color, #ffc800);
             border: solid 4px transparent;
-            transition: all 150ms;
+        }
+
+        .highlighter-rect-word {
+            border-radius: 10px;
+            transition: left 150ms, width 150ms;
+            will-change: left, width;
         }
 
         .highlighter-rect:first-child {
@@ -208,7 +215,11 @@
         const speaker = new Speaker(article);
         console.log(speaker);
 
-        speaker.setupHighlighter();
+        speaker.setupHighlighter({
+            boundaries: {
+                rectClass: 'highlighter-rect-word',
+            },
+        });
 
         function getRange() {
             let selection = window.getSelection();
