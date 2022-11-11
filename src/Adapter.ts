@@ -1,4 +1,6 @@
-import type { SpeechToken, Utterance } from './Utterance';
+import type { BoundaryToken } from './Tokenizer';
+import type { Utterance } from './Utterance';
+import { Deferred } from './Deferred';
 
 export function checkSupport() {
     if (typeof window !== 'undefined' &&
@@ -32,22 +34,39 @@ export function getSpeechSynthesisUtterance() {
  * Speech synthesis voices loader is async in Chrome.
  * Promisify it.
  */
-const VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>> = new Promise((resolve) => {
-    const getVoices = () => {
-        let voices = getSpeechSynthesis().getVoices();
-        if (voices.length) {
-            voices = [...voices].filter((voice) => voice.localService);
-            resolve(voices);
-            return true;
-        }
-        return false;
-    };
-    if (!getVoices()) {
-        getSpeechSynthesis().onvoiceschanged = getVoices;
-    }
-});
+let VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>>;
 
-export function getVoices() {
+/**
+ * Get speech synthesis voices.
+ * @param timeoutTime Timeout time in milliseconds.
+ * @returns A promise that resolves voices.
+ */
+export function getVoices(timeoutTime: number = 2000) {
+    if (!VOICES_PROMISE) {
+        VOICES_PROMISE = new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Cannot retrieve voices'));
+            }, timeoutTime);
+
+            const getVoices = () => {
+                let voices = getSpeechSynthesis().getVoices();
+                if (voices.length) {
+                    clearTimeout(timeout);
+                    voices = [...voices].filter((voice) => voice.localService);
+                    if (!voices.length) {
+                        reject(new Error('Cannot retrieve offline voices'));
+                        return false;
+                    }
+                    resolve(voices);
+                    return true;
+                }
+                return false;
+            };
+            if (!getVoices()) {
+                getSpeechSynthesis().onvoiceschanged = getVoices;
+            }
+        });
+    }
     return VOICES_PROMISE;
 }
 
@@ -183,20 +202,28 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
  * A Text2Speech adapter which uses native browser SpeechSynthesis.
  */
 export class Adapter {
-    private options: SynthesisOptions;
-    private utterances?: SpeechSynthesisUtterance[];
-    private utterance?: SpeechSynthesisUtterance;
-    private current: number = 0;
+    #options: SynthesisOptions;
+    #utterances: SpeechSynthesisUtterance[] | null = null;
+    #playbackDeferred: Deferred | null = null;
+    #currentIndex: number = 0;
+    #currentUtterance: SpeechSynthesisUtterance | null = null;
 
     /**
      * Create an instance of the Synthesis adapter.
      * @param options A set of options for Synthesis.
      */
     constructor(options: Partial<SynthesisOptions> = {}) {
-        this.options = {
+        this.#options = {
             ...DEFAULT_OPTIONS,
             ...options,
         };
+    }
+
+    /**
+     * Flag for active speech.
+     */
+    get active() {
+        return !!this.#playbackDeferred;
     }
 
     /**
@@ -211,19 +238,23 @@ export class Adapter {
      */
     async cancel(): Promise<void> {
         const speechSynthesis = getSpeechSynthesis();
-        this.utterances?.forEach((speechUtterance) => {
+        this.#utterances?.forEach((speechUtterance) => {
             speechUtterance.onstart = null;
             speechUtterance.onresume = null;
             speechUtterance.onpause = null;
             speechUtterance.onboundary = null;
             speechUtterance.onend = null;
         });
-        this.current = 0;
-        delete this.utterance;
-        delete this.utterances;
+        this.#currentIndex = 0;
+        this.#currentUtterance = null;
+        this.#utterances = null;
         speechSynthesis.pause();
         speechSynthesis.cancel();
         await awaitState(() => !speechSynthesis.pending && !speechSynthesis.speaking);
+        if (this.#playbackDeferred) {
+            this.#playbackDeferred.reject(new Error('Canceled'));
+        }
+        this.#playbackDeferred = null;
     }
 
     /**
@@ -239,78 +270,103 @@ export class Adapter {
      * Start or resume a speaking.
      * @param utterances A list of utterances to speak.
      */
-    async play(utterances?: Utterance[]) {
+    async play(utterances?: Utterance[]): Promise<Deferred> {
         const speechSynthesis = getSpeechSynthesis();
-        if (this.utterance) {
-            // just resume the playback.
-            speechSynthesis.resume();
-        } else if (utterances) {
-            await this.cancel();
+        if (!utterances && this.#utterances) {
+            if (this.#currentUtterance) {
+                // just resume the playback.
+                speechSynthesis.resume();
+            } else {
+                speechSynthesis.speak(this.#utterances[this.#currentIndex]);
+            }
 
-            const voices = await getVoices();
-            const speechUtterances = utterances
-                .map((utterance, index) => {
-                    const text = utterance.getTokens().map((token) => token.text).join(' ');
-                    const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
-                    const speechUtterance = new SpeechSynthesisUtterance(text);
-                    let boundaries = 0;
-                    // setup utterance properties.
-                    const voice = this.getVoice(voices, utterance.lang, utterance.voices);
-                    if (!voice) {
-                        return;
+            return this.#playbackDeferred as Deferred;
+        }
+
+        await this.cancel();
+
+        const deferred = this.#playbackDeferred = new Deferred();
+        const voices = await getVoices();
+        const speechUtterances = (utterances || [])
+            .map((utterance, index, queue) => {
+                const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
+                const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
+                let boundaries = 0;
+                // setup utterance properties.
+                const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
+                if (!voice) {
+                    return;
+                }
+
+                speechUtterance.voice = voice;
+                speechUtterance.lang = voice.lang;
+                speechUtterance.rate = utterance.rate;
+
+                // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
+                speechUtterance.onstart = () => {
+                    this.#currentIndex = index;
+                    this.#currentUtterance = speechUtterance;
+                    utterance.started();
+                };
+
+                speechUtterance.onpause = async () => {
+                    if (boundaries === utterance.length) {
+                        speechSynthesis.pause();
+                        speechSynthesis.cancel();
+                        // sometimes the browser does not dispatch end event after resume
+                        // if last boundaries has been met.¯\_(ツ)_ /¯
+                        this.#currentIndex++;
+                        this.#currentUtterance = null;
+                        utterance.ended();
                     }
+                };
 
-                    speechUtterance.voice = voice;
-                    speechUtterance.lang = voice.lang;
-                    speechUtterance.rate = utterance.rate;
+                speechUtterance.onboundary = ({ charIndex }) => {
+                    boundaries++;
+                    utterance.boundary(utterance.getToken(charIndex) as BoundaryToken);
+                };
 
-                    // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
-                    speechUtterance.onstart = () => {
-                        this.current = index;
-                        this.utterance = speechUtterance;
-                        utterance.started();
+                if (index === queue.length - 1) {
+                    speechUtterance.onend = () => {
+                        utterance.ended();
+                        deferred.resolve();
+                        this.#playbackDeferred = null;
                     };
-
-                    speechUtterance.onpause = async () => {
-                        if (boundaries === utterance.getTokens().length) {
-                            speechSynthesis.pause();
-                            speechSynthesis.cancel();
-                            // sometimes the browser does not dispatch end event after resume
-                            // if last boundaries has been met.¯\_(ツ)_ /¯
-                            this.current++;
-                            delete this.utterance;
-                            utterance.ended();
-                        }
-                    };
-
-                    speechUtterance.onboundary = ({ charIndex }) => {
-                        boundaries++;
-                        utterance.boundary(utterance.getToken(charIndex) as SpeechToken);
-                    };
-
+                } else {
                     speechUtterance.onend = () => {
                         if (this.paused) {
                             return;
                         }
 
-                        this.current++;
-                        delete this.utterance;
+                        this.#currentIndex++;
+                        this.#currentUtterance = null;
                         utterance.ended();
-                        speechSynthesis.speak(speechUtterances[this.current]);
+                        speechSynthesis.speak(speechUtterances[index + 1]);
+                        if (speechSynthesis.paused) {
+                            speechSynthesis.resume();
+                        }
                     };
+                }
 
-                    return speechUtterance;
-                })
-                .filter(Boolean) as SpeechSynthesisUtterance[];
+                return speechUtterance;
+            })
+            .filter(Boolean) as SpeechSynthesisUtterance[];
 
-            // store utterances queue.
-            this.utterances = speechUtterances;
-            speechSynthesis.speak(speechUtterances[this.current]);
-        } else if (this.utterances) {
-            speechSynthesis.speak(this.utterances[this.current]);
+        if (!speechUtterances.length) {
+            deferred.resolve();
+            return deferred;
+        }
+
+        // store utterances queue.
+        this.#utterances = speechUtterances;
+        speechSynthesis.speak(speechUtterances[0]);
+        if (speechSynthesis.paused) {
+            speechSynthesis.resume();
         }
 
         await awaitState(() => speechSynthesis.speaking && !speechSynthesis.paused);
+
+        return deferred;
     }
 
     /**
@@ -320,7 +376,7 @@ export class Adapter {
      * @param requestedVoices The requested voices.
      */
     private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
-        const { preferredVoices, maleVoices, femaleVoices } = this.options;
+        const { preferredVoices, maleVoices, femaleVoices } = this.#options;
 
         requestedLang = requestedLang.toLowerCase().replace('_', '-');
         const availableVoices = voices.filter((voice) => {
@@ -375,8 +431,8 @@ export class Adapter {
      * Check if a token can be spoken by the adapter.
      * @param token The token to check.
      */
-    canSpeech(token: Element) {
-        return !token.closest('math, [data-mathml]');
+    canSpeech(token: BoundaryToken) {
+        return !token.startNode.parentElement?.closest('math, [data-mathml]');
     }
 }
 

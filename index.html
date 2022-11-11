@@ -7,31 +7,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Speaker</title>
     <style>
-        @import url('https://fonts.googleapis.com/css?family=Merriweather');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
         @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
-        :root {
-            --speaker-sentence-active-color: rgb(255, 243, 189);
-            --speaker-word-active-color: rgb(255, 208, 0);
-        }
-
-        .speaker--sentence-active {
-            background: var(--speaker-sentence-active-color);
-        }
-
-        .speaker--word-active:not(img) {
-            background: var(--speaker-word-active-color);
-        }
-
-        img.speaker--word-active {
-            box-shadow: 0 0 0 4px var(--speaker-word-active-color);
-        }
 
         html,
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+            font-family: 'Inter', sans-serif;
+            font-size: 18px;
         }
 
         * {
@@ -45,12 +29,11 @@
         }
 
         article {
-            width: 100%;
-            max-width: 46em;
+            width: 60ch;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 1em;
-            font-family: 'Merriweather', serif;
-            line-height: 1.8em;
+            padding: 2em 1em;
+            line-height: 1.4;
         }
 
         article *::selection {
@@ -63,6 +46,7 @@
         }
 
         article img {
+            display: block;
             max-width: 100%;
             -webkit-user-drag: none;
         }
@@ -121,6 +105,58 @@
         nav select + select {
             margin-left: 1em;
         }
+
+        .highlighter {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+            overflow: hidden;
+        }
+
+        .highlighter-rect,
+        .highlighter-rect-word {
+            box-sizing: content-box;
+            position: absolute;
+            margin-top: -4px;
+            margin-left: -4px;
+            background: var(--highlight-color, #ffc800);
+            border: solid 4px transparent;
+        }
+
+        .highlighter-rect-word {
+            border-radius: 10px;
+            transition: left 150ms, width 150ms;
+            will-change: left, width;
+        }
+
+        .highlighter-rect:first-child {
+            border-top-left-radius: 10px;
+        }
+
+        .highlighter-rect:first-child:only-child {
+            border-bottom-left-radius: 10px;
+        }
+
+        .highlighter-rect:first-child:not(:only-child) {
+            border-top-right-radius: 10px;
+        }
+
+        .highlighter-rect:last-child {
+            border-bottom-right-radius: 10px;
+        }
+
+        .highlighter-rect:last-child:only-child {
+            border-top-right-radius: 10px;
+        }
+
+        .highlighter-rect:last-child:not(:only-child) {
+            border-bottom-left-radius: 10px;
+        }
+
     </style>
 </head>
 
@@ -168,54 +204,33 @@
         </footer>
     </article>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-    <script type="text/javascript" src="dist/umd/speaker.js"></script>
-    <script>
-        let speaker;
-        let readButton = document.querySelector('#all');
-        let playButton = document.querySelector('#play');
-        let stopButton = document.querySelector('#stop');
-        let rateSelect = document.querySelector('#rate');
+    <script type="module">
+        import { Speaker } from './dist/esm/speaker.js';
 
-        let articles = document.querySelectorAll('article');
-        articles.forEach((article) => {
-            speaker = new Speaker.Speaker(article, {
-                chunk: {
-                    excludeSelector: [
-                        'head',
-                        'title',
-                        'meta',
-                        'script',
-                        'style',
-                        'iframe',
-                        'img',
-                        'object',
-                        'audio',
-                        'video',
-                        'svg',
-                        'math',
-                    ].join(', '),
-                },
-            });
-            console.log(speaker);
+        const readButton = document.querySelector('#all');
+        const playButton = document.querySelector('#play');
+        const stopButton = document.querySelector('#stop');
+        const rateSelect = document.querySelector('#rate');
+        const article = document.querySelector('article');
+        const speaker = new Speaker(article);
+        console.log(speaker);
+
+        speaker.setupHighlighter({
+            boundaries: {
+                rectClass: 'highlighter-rect-word',
+            },
         });
 
-        function onClick(element, callback) {
-            element.addEventListener('click', callback);
-        }
-
-        function getRange() {
-            let selection = window.getSelection();
-            return (selection.rangeCount && !selection.isCollapsed && selection.getRangeAt(0)) || null;
-        }
-
-        onClick(readButton, async (event) => {
+        readButton.addEventListener('click', async (event) => {
             event.stopPropagation();
             event.preventDefault();
-            let range = getRange();
+            const selection = window.getSelection();
+            const range = (selection.rangeCount && !selection.isCollapsed && selection.getRangeAt(0)) || null;
             speaker.play(range);
+            selection.removeAllRanges();
         });
 
-        onClick(playButton, (event) => {
+        playButton.addEventListener('click', (event) => {
             event.stopPropagation();
             event.preventDefault();
 
@@ -226,7 +241,7 @@
             }
         });
 
-        onClick(stopButton, (event) => {
+        stopButton.addEventListener('click', (event) => {
             event.stopPropagation();
             event.preventDefault();
             if (speaker.active) {
@@ -256,6 +271,10 @@
         speaker.on('end', () => {
             playButton.disabled = true;
             stopButton.disabled = true;
+        });
+
+        speaker.on('error', (err) => {
+            alert(err.message);
         });
 
         document.addEventListener('click', (event) => {
