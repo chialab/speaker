@@ -17,7 +17,7 @@ const config = {
         },
     ],
     bundle: true,
-    // minify: true,
+    minify: true,
 };
 
 export default config;
