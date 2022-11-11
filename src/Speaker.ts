@@ -149,7 +149,7 @@ export class Speaker extends Emitter<{
         this.#options = {
             rate: 1,
             ignore: '[aria-hidden]',
-            attributes: ['aria-label', 'alt', 'data-mathml'],
+            attributes: ['aria-label', 'aria-labelledby', 'alt', 'data-mathml'],
             ...options,
             lang: normalizeLanguage(options.lang ?? getLang()),
         };
@@ -216,7 +216,7 @@ export class Speaker extends Emitter<{
         let currentUtterance: Utterance | null = null;
         let sentences: SentenceToken[] = [];
 
-        for (const token of tokenize(this.#element)) {
+        for (const token of tokenize(this.#element, TokenType.ALL, { ignore: this.#options.ignore, attributes: this.#options.attributes })) {
             switch (token.type) {
                 case TokenType.SENTENCE:
                     currentUtterance = null;

@@ -352,6 +352,11 @@ export class Adapter {
             })
             .filter(Boolean) as SpeechSynthesisUtterance[];
 
+        if (!speechUtterances.length) {
+            deferred.resolve();
+            return deferred;
+        }
+
         // store utterances queue.
         this.#utterances = speechUtterances;
         speechSynthesis.speak(speechUtterances[0]);

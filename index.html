@@ -46,6 +46,7 @@
         }
 
         article img {
+            display: block;
             max-width: 100%;
             -webkit-user-drag: none;
         }
@@ -241,16 +242,26 @@
                 this.#element.innerHTML = '';
             }
 
-            normalizeRects(rects) {
-                const normalized = [];
-                for (let i = 0; i < rects.length; i++) {
-                    const rect = rects[i];
+            normalizeRects(original) {
+                const rects = [];
+                const collected = [];
+
+                for (let i = 0; i < original.length; i++) {
+                    const rect = original[i];
                     if (!rect.width || !rect.height) {
+                        // remove empty
                         continue;
                     }
-                    const last = normalized[normalized.length - 1];
+                    if (collected.find((r) => r.top === rect.top && r.left === rect.left && r.width === rect.width && r.height === rect.height)) {
+                        // remove duplicates
+                        continue;
+                    }
+
+                    collected.push(rect);
+
+                    const last = rects[rects.length - 1];
                     if (!last || last.top !== rect.top || last.height !== rect.height || ((rect.left - (last.left + last.width)) > 1)) {
-                        normalized.push({
+                        rects.push({
                             top: rect.top,
                             left: rect.left,
                             width: rect.width,
@@ -260,7 +271,8 @@
                         last.width += rect.width;
                     }
                 }
-                return normalized;
+
+                return rects;
             }
 
             draw() {
@@ -368,6 +380,7 @@
             // }
             if (lastSentence !== sentence) {
                 sentenceHighlighter.setRange(null);
+                tokenHighlighter.setRange(null);
                 sentenceHighlighter.setRange(sentence ? createRange(...sentence.tokens) : null);
                 lastSentence = sentence;
             }

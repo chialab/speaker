@@ -61,7 +61,7 @@ export interface BlockToken extends GroupToken<BoundaryToken> {
  * @returns A selection range.
  */
 export function createRange(...tokens: Token[]) {
-    const range = (tokens[0].startNode.ownerDocument as Document).createRange();
+    const range = new Range();
     range.setStart(tokens[0].startNode, tokens[0].startOffset);
     range.setEnd(tokens[tokens.length - 1].endNode, tokens[tokens.length - 1].endOffset);
     return range;
@@ -124,7 +124,7 @@ function checkDisplayBlock(element: Element) {
  * @returns The language or null.
  */
 function getNodeLang(node: Node) {
-    return node.parentElement?.closest('[lang]')?.getAttribute('lang') ?? null;
+    return (node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement)?.closest('[lang]')?.getAttribute('lang') ?? null;
 }
 
 /**
@@ -142,6 +142,7 @@ function getNodeVoice(node: Node) {
 export interface TokenizerOptions {
     ignore?: CheckRule;
     blocks?: CheckRule;
+    attributes?: string[];
 }
 
 /**
@@ -152,6 +153,7 @@ export interface TokenizerOptions {
  */
 export function* tokenize(element: Element, whatToShow = TokenType.ALL, options: TokenizerOptions = {}) {
     const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+    const attributes = options.attributes ?? ['alt', 'aria-label', 'aria-labelledby'];
     const ignore = createCheckFunction(options.ignore);
     const isBlock = createCheckFunction(options.blocks);
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
@@ -171,13 +173,34 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
 
     let currentNode: Node | null = null;
     // eslint-disable-next-line no-cond-assign
-    while (currentNode = walker.nextNode()) {
+    tokenIterator: while (currentNode = walker.nextNode()) {
         if (ignore(currentNode)) {
             continue;
         }
 
-        if (currentNode.nodeType === Node.ELEMENT_NODE) {
-            if (isBlock(currentNode) || checkDisplayBlock(currentNode as Element)) {
+        const isElement = currentNode.nodeType === Node.ELEMENT_NODE;
+
+        let textValue = '';
+        attributeIterator: for (let i = 0; i < attributes.length; i++) {
+            const attrName = attributes[i];
+            switch (attrName) {
+                case 'aria-labelledby':
+                    break;
+                default: {
+                    if (isElement && (currentNode as Element).hasAttribute(attrName)) {
+                        textValue = (currentNode as Element).getAttribute(attrName) || '';
+                        break attributeIterator;
+                    }
+                    if ((isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(`[${attrName}]`)) {
+                        continue tokenIterator;
+                    }
+                }
+            }
+        }
+
+        if (isElement) {
+            const isBlockElement = isBlock(currentNode) || checkDisplayBlock(currentNode as Element);
+            if (isBlockElement || textValue) {
                 if (chunk && endNode) {
                     startNode = startNode ?? endNode;
 
@@ -207,27 +230,79 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                     startOffset = 0;
                 }
 
-                if (collectSentences && currentSentence.length) {
-                    yield {
-                        type: TokenType.SENTENCE,
-                        startNode: currentSentence[0].startNode,
-                        startOffset: currentSentence[0].startOffset,
-                        endNode: currentSentence[currentSentence.length - 1].endNode,
-                        endOffset: currentSentence[currentSentence.length - 1].endOffset,
-                        tokens: currentSentence,
-                    } as SentenceToken;
-                    currentSentence = [];
+                if (isBlockElement) {
+                    if (collectSentences && currentSentence.length) {
+                        yield {
+                            type: TokenType.SENTENCE,
+                            startNode: currentSentence[0].startNode,
+                            startOffset: currentSentence[0].startOffset,
+                            endNode: currentSentence[currentSentence.length - 1].endNode,
+                            endOffset: currentSentence[currentSentence.length - 1].endOffset,
+                            tokens: currentSentence,
+                        } as SentenceToken;
+                        currentSentence = [];
+                    }
+                    if (collectBlocks && currentBlock.length) {
+                        yield {
+                            type: TokenType.BLOCK,
+                            startNode: currentBlock[0].startNode,
+                            startOffset: currentBlock[0].startOffset,
+                            endNode: currentBlock[currentBlock.length - 1].endNode,
+                            endOffset: currentBlock[currentBlock.length - 1].endOffset,
+                            tokens: currentBlock,
+                        } as BlockToken;
+                        currentBlock = [];
+                    }
                 }
-                if (collectBlocks && currentBlock.length) {
-                    yield {
-                        type: TokenType.BLOCK,
-                        startNode: currentBlock[0].startNode,
-                        startOffset: currentBlock[0].startOffset,
-                        endNode: currentBlock[currentBlock.length - 1].endNode,
-                        endOffset: currentBlock[currentBlock.length - 1].endOffset,
-                        tokens: currentBlock,
-                    } as BlockToken;
-                    currentBlock = [];
+
+                if (textValue) {
+                    const range = new Range();
+                    range.selectNode(currentNode);
+                    const token: BoundaryToken = {
+                        type: TokenType.BOUNDARY,
+                        text: textValue,
+                        startNode: range.startContainer,
+                        startOffset: range.startOffset,
+                        endNode: range.endContainer,
+                        endOffset: range.endOffset,
+                        lang: getNodeLang(currentNode),
+                        voice: getNodeVoice(currentNode),
+                    };
+
+                    if (collectBoundaries) {
+                        yield token;
+                    }
+                    if (collectSentences) {
+                        currentSentence.push(token);
+                    }
+                    if (collectBlocks) {
+                        currentBlock.push(token);
+                    }
+
+                    if (isBlockElement) {
+                        if (collectSentences && currentSentence.length) {
+                            yield {
+                                type: TokenType.SENTENCE,
+                                startNode: currentSentence[0].startNode,
+                                startOffset: currentSentence[0].startOffset,
+                                endNode: currentSentence[currentSentence.length - 1].endNode,
+                                endOffset: currentSentence[currentSentence.length - 1].endOffset,
+                                tokens: currentSentence,
+                            } as SentenceToken;
+                            currentSentence = [];
+                        }
+                        if (collectBlocks && currentBlock.length) {
+                            yield {
+                                type: TokenType.BLOCK,
+                                startNode: currentBlock[0].startNode,
+                                startOffset: currentBlock[0].startOffset,
+                                endNode: currentBlock[currentBlock.length - 1].endNode,
+                                endOffset: currentBlock[currentBlock.length - 1].endOffset,
+                                tokens: currentBlock,
+                            } as BlockToken;
+                            currentBlock = [];
+                        }
+                    }
                 }
             }
 
