@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 2.0.1
+
+### Patch Changes
+
+- 0ab04c0: Fixed a problem with speechSynthesis state.
+
 ## 2.0.0
 
 ### Major Changes
