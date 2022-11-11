@@ -104,6 +104,16 @@ describe('tokenizer', () => {
         });
     });
 
+    it('should ignore hidden tokens', () => {
+        container.innerHTML = '<p>Lorem <span style="display: none">ipsum</span>dolor sit</p>';
+
+        const tokens = [...tokenize(container, TokenType.BOUNDARY)];
+        expect(tokens).to.have.lengthOf(3);
+        expect(tokens[0]).to.include({ text: 'Lorem' });
+        expect(tokens[1]).to.include({ text: 'dolor' });
+        expect(tokens[2]).to.include({ text: 'sit' });
+    });
+
     it('should ignore tokens by selector', () => {
         container.innerHTML = '<p>Lorem <span class="ignore">ipsum</span>dolor sit</p><p class="ignore">Lorem ipsum</p>Lorem ipsum';
 

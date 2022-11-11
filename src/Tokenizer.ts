@@ -71,11 +71,11 @@ function createCheckFunction(rules?: CheckRule): CheckFunction {
     }
     if (typeof rules === 'string') {
         return (node) => {
-            const parentElement = node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement;
-            if (!parentElement) {
+            const containerElement = node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement;
+            if (!containerElement) {
                 return true;
             }
-            return parentElement.closest(rules) !== null;
+            return containerElement.closest(rules) !== null;
         };
     }
     if (typeof rules === 'function') {
@@ -107,8 +107,22 @@ function checkDisplayBlock(element: Element) {
 }
 
 /**
- * Get the current text node lang.
- * @param node The text node.
+ * Check if node is hidden.
+ * @param node The node to check.
+ * @returns True if the node is hidden.
+ */
+function checkDisplayNone(node: Node) {
+    const containerElement = node.nodeType === Node.ELEMENT_NODE ? node as HTMLElement : node.parentElement;
+    if (!containerElement) {
+        return true;
+    }
+
+    return containerElement.offsetParent === null;
+}
+
+/**
+ * Get the current node lang.
+ * @param node The node.
  * @returns The language or null.
  */
 function getNodeLang(node: Node) {
@@ -174,7 +188,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             }
         }
 
-        if (ignore(currentNode)) {
+        if (ignore(currentNode) || checkDisplayNone(currentNode)) {
             continue;
         }
 
