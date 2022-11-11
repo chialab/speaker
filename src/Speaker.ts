@@ -218,10 +218,7 @@ export class Speaker extends Emitter<{
      * @param range A selection range of tokens to speech.
      */
     async play(range?: Range | null) {
-        // const active = this.active;
-        // const paused = this.paused;
-        // this.range = range || null;
-        if (this.active) {
+        if (this.active && !range) {
             if (!this.paused) {
                 return;
             }
@@ -236,13 +233,24 @@ export class Speaker extends Emitter<{
             return;
         }
 
+        if (this.active) {
+            await this.cancel();
+        }
+
+        this.#range = range || null;
+
         await this.trigger('loading');
 
         let played = false;
         let currentUtterance: Utterance | null = null;
         let sentences: SentenceToken[] = [];
 
-        for (const token of tokenize(this.#element, TokenType.ALL, { ignore: this.#options.ignore, attributes: this.#options.attributes })) {
+        const tokensIterator = tokenize(this.#element, TokenType.ALL, {
+            range: range || undefined,
+            ignore: this.#options.ignore,
+            attributes: this.#options.attributes,
+        });
+        for (const token of tokensIterator) {
             switch (token.type) {
                 case TokenType.SENTENCE:
                     currentUtterance = null;

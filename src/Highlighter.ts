@@ -82,7 +82,7 @@ export class Highlighter {
      */
     show() {
         this.#shown = true;
-        this.liveUpdate(false);
+        this.liveUpdate(true);
         this.#root.appendChild(this.#element);
     }
 

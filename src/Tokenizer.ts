@@ -128,6 +128,7 @@ function getNodeVoice(node: Node) {
  * Tokenizer options.
  */
 export interface TokenizerOptions {
+    range?: Range;
     ignore?: CheckRule;
     blocks?: CheckRule;
     attributes?: string[];
@@ -144,6 +145,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     const attributes = options.attributes ?? ['alt', 'aria-label', 'aria-labelledby'];
     const ignore = createCheckFunction(options.ignore);
     const isBlock = createCheckFunction(options.blocks);
+    const range = options.range;
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
@@ -162,6 +164,15 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     let currentNode: Node | null = null;
     // eslint-disable-next-line no-cond-assign
     tokenIterator: while (currentNode = walker.nextNode()) {
+        if (range) {
+            if (range.startContainer.compareDocumentPosition(currentNode) === Node.DOCUMENT_POSITION_PRECEDING) {
+                continue;
+            }
+            if (range.endContainer.compareDocumentPosition(currentNode) === Node.DOCUMENT_POSITION_FOLLOWING) {
+                continue;
+            }
+        }
+
         if (ignore(currentNode)) {
             continue;
         }

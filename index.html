@@ -221,16 +221,13 @@
             },
         });
 
-        function getRange() {
-            let selection = window.getSelection();
-            return (selection.rangeCount && !selection.isCollapsed && selection.getRangeAt(0)) || null;
-        }
-
         readButton.addEventListener('click', async (event) => {
             event.stopPropagation();
             event.preventDefault();
-            let range = getRange();
+            const selection = window.getSelection();
+            const range = (selection.rangeCount && !selection.isCollapsed && selection.getRangeAt(0)) || null;
             speaker.play(range);
+            selection.removeAllRanges();
         });
 
         playButton.addEventListener('click', (event) => {

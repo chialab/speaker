@@ -51,6 +51,17 @@ export class Emitter<EventsMap extends Record<string, Event>> {
             return;
         }
 
-        listeners.forEach((listener) => listener.call(this, data));
+        return listeners.reduce((result: unknown, callback) => {
+            if (!listeners.includes(callback)) {
+                // the callback has been removed from the callback list.
+                return result;
+            }
+            if (result instanceof Promise) {
+                // wait for the previous result.
+                return result.then(() => callback.call(this, data));
+            }
+
+            return result = callback.call(this, data);
+        }, undefined);
     }
 }
