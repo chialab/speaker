@@ -300,7 +300,9 @@ export class Speaker extends Emitter<{
 
                         try {
                             await dfd.promise();
-                        } catch {
+                        } catch (err) {
+                            this.clear();
+                            await this.trigger('cancel');
                             return;
                         }
                     } catch (err) {

@@ -113,6 +113,17 @@ function awaitState(callback: () => boolean, time = 100): Promise<void> {
     });
 }
 
+/**
+ * Promisify setTimeout.
+ * @param time Timeout time.
+ * @returns A promise instance.
+ */
+function awaitTimeout(time = 100) {
+    return new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), time);
+    });
+}
+
 export interface SynthesisOptions {
     /**
      * A list of preferred voice names to use.
@@ -283,7 +294,17 @@ export class Adapter {
             return this.#playbackDeferred as Deferred;
         }
 
-        await this.cancel();
+        if (this.active) {
+            await this.cancel();
+        } else {
+            speechSynthesis.pause();
+            speechSynthesis.cancel();
+            await Promise.all([
+                awaitState(() => !speechSynthesis.pending && !speechSynthesis.speaking),
+                // sometime speechSynthesis claims its state is clean, but it is not
+                awaitTimeout(),
+            ]);
+        }
 
         const deferred = this.#playbackDeferred = new Deferred();
         const voices = await getVoices();
@@ -328,6 +349,11 @@ export class Adapter {
 
                 if (index === queue.length - 1) {
                     speechUtterance.onend = () => {
+                        if (this.paused) {
+                            this.cancel();
+                            return;
+                        }
+
                         utterance.ended();
                         deferred.resolve();
                         this.#playbackDeferred = null;
