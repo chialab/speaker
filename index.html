@@ -106,7 +106,7 @@
             margin-left: 1em;
         }
 
-        .highlightable {
+        .highlighter {
             position: fixed;
             top: 0;
             left: 0;
@@ -116,7 +116,7 @@
             mix-blend-mode: multiply;
         }
 
-        .highlightable div {
+        .highlighter-rect {
             box-sizing: content-box;
             position: absolute;
             margin-top: -4px;
@@ -126,27 +126,27 @@
             transition: all 150ms;
         }
 
-        .highlightable div:first-child {
+        .highlighter-rect:first-child {
             border-top-left-radius: 10px;
         }
 
-        .highlightable div:first-child:only-child {
+        .highlighter-rect:first-child:only-child {
             border-bottom-left-radius: 10px;
         }
 
-        .highlightable div:first-child:not(:only-child) {
+        .highlighter-rect:first-child:not(:only-child) {
             border-top-right-radius: 10px;
         }
 
-        .highlightable div:last-child {
+        .highlighter-rect:last-child {
             border-bottom-right-radius: 10px;
         }
 
-        .highlightable div:last-child:only-child {
+        .highlighter-rect:last-child:only-child {
             border-top-right-radius: 10px;
         }
 
-        .highlightable div:last-child:not(:only-child) {
+        .highlighter-rect:last-child:not(:only-child) {
             border-bottom-left-radius: 10px;
         }
 
@@ -198,7 +198,7 @@
     </article>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script type="module">
-        import { Speaker, createRange } from './dist/esm/speaker.js';
+        import { Speaker } from './dist/esm/speaker.js';
 
         const readButton = document.querySelector('#all');
         const playButton = document.querySelector('#play');
@@ -208,105 +208,7 @@
         const speaker = new Speaker(article);
         console.log(speaker);
 
-        class Highlighter {
-            #element = document.createElement('div');
-            #range = null;
-            #frameRequest = null;
-
-            constructor() {
-                document.body.appendChild(this.#element);
-                this.#element.classList.add('highlightable')
-                this.hide();
-            }
-
-            setRange(range) {
-                this.#range = range;
-                if (range) {
-                    this.show();
-                } else {
-                    this.hide();
-                }
-            }
-
-            show() {
-                this.#element.style.display = 'block';
-                this.draw();
-            }
-
-            hide() {
-                if (this.#frameRequest) {
-                    cancelAnimationFrame(this.#frameRequest);
-                }
-                this.#frameRequest = null;
-                this.#element.style.display = 'none';
-                this.#element.innerHTML = '';
-            }
-
-            normalizeRects(original) {
-                const rects = [];
-                const collected = [];
-
-                for (let i = 0; i < original.length; i++) {
-                    const rect = original[i];
-                    if (!rect.width || !rect.height) {
-                        // remove empty
-                        continue;
-                    }
-                    if (collected.find((r) => r.top === rect.top && r.left === rect.left && r.width === rect.width && r.height === rect.height)) {
-                        // remove duplicates
-                        continue;
-                    }
-
-                    collected.push(rect);
-
-                    const last = rects[rects.length - 1];
-                    if (!last || last.top !== rect.top || last.height !== rect.height || ((rect.left - (last.left + last.width)) > 1)) {
-                        rects.push({
-                            top: rect.top,
-                            left: rect.left,
-                            width: rect.width,
-                            height: rect.height,
-                        });
-                    } else {
-                        last.width += rect.width;
-                    }
-                }
-
-                return rects;
-            }
-
-            draw() {
-                if (!this.#range) {
-                    return;
-                }
-
-                const rects = this.normalizeRects(this.#range.getClientRects());
-                const element = this.#element;
-                const childNodes = element.children;
-                let i;
-                for (i = 0; i < rects.length; i++) {
-                    const rect = rects[i];
-                    const box = (childNodes.item(i) || document.createElement('div'));
-                    if (childNodes.length === i) {
-                        element.appendChild(box);
-                    }
-                    Object.assign(box.style, {
-                        top: `${rect.top}px`,
-                        left: `${rect.left}px`,
-                        width: `${rect.width}px`,
-                        height: `${rect.height}px`,
-                    });
-                }
-                while (i <= childNodes.length - 1) {
-                    element.removeChild(childNodes.item(childNodes.length - 1));
-                }
-                this.#frameRequest = requestAnimationFrame(() => this.draw());
-            }
-        }
-
-        const blockHighlighter = new Highlighter();
-        const sentenceHighlighter = new Highlighter();
-        const tokenHighlighter = new Highlighter();
+        speaker.setupHighlighter();
 
         function getRange() {
             let selection = window.getSelection();
@@ -356,35 +258,11 @@
         speaker.on('cancel', () => {
             playButton.disabled = true;
             stopButton.disabled = true;
-            blockHighlighter.setRange(null);
-            sentenceHighlighter.setRange(null);
-            tokenHighlighter.setRange(null);
         });
 
         speaker.on('end', () => {
             playButton.disabled = true;
             stopButton.disabled = true;
-            blockHighlighter.setRange(null);
-            sentenceHighlighter.setRange(null);
-            tokenHighlighter.setRange(null);
-        });
-
-        let lastBlock;
-        let lastSentence;
-        speaker.on('boundary', ({ token, sentence, block }) => {
-            console.log('>', token);
-            // if (lastBlock !== block) {
-            //     blockHighlighter.setRange(null);
-            //     blockHighlighter.setRange(block ? createRange(...block.tokens) : null);
-            //     lastBlock = block;
-            // }
-            if (lastSentence !== sentence) {
-                sentenceHighlighter.setRange(null);
-                tokenHighlighter.setRange(null);
-                sentenceHighlighter.setRange(sentence ? createRange(...sentence.tokens) : null);
-                lastSentence = sentence;
-            }
-            tokenHighlighter.setRange(createRange(token));
         });
 
         speaker.on('error', (err) => {

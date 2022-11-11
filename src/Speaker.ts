@@ -1,11 +1,16 @@
 import type { Event } from './Emitter';
-import type { BoundaryToken, CheckRule, BlockToken, SentenceToken } from './Tokenizer';
+import type { Token, BoundaryToken, BlockToken, SentenceToken, CheckRule } from './Tokenizer';
+import type { HighlighterOptions } from './Highlighter';
 import { Emitter } from './Emitter';
 import { Utterance } from './Utterance';
 import { Adapter } from './Adapter';
 import { TokenType, tokenize } from './Tokenizer';
+import { Highlighter } from './Highlighter';
 
-export interface SpeechOptions {
+/**
+ * Speaker options.
+ */
+export interface SpeakerOptions {
     /**
      * The initial playback rate for the speaking.
      */
@@ -22,6 +27,15 @@ export interface SpeechOptions {
      * List of attributes for alternative text.
      */
     attributes?: string[];
+}
+
+/**
+ * Speaker highlighter options.
+ */
+export interface SpeakerHighlighterOptions extends HighlighterOptions {
+    boundaries?: boolean;
+    sentences?: boolean;
+    blocks?: boolean;
 }
 
 /**
@@ -68,6 +82,18 @@ function normalizeVoices(voices: string) {
         .split(',')
         .map((chunk) => chunk.trim())
         .join(',');
+}
+
+/**
+ * Create a range that includes all given tokens.
+ * @param tokens Tokens list.
+ * @returns A selection range.
+ */
+function createRange(...tokens: Token[]) {
+    const range = new Range();
+    range.setStart(tokens[0].startNode, tokens[0].startOffset);
+    range.setEnd(tokens[tokens.length - 1].endNode, tokens[tokens.length - 1].endOffset);
+    return range;
 }
 
 export interface SpeakerStartEvent extends Event {
@@ -125,7 +151,7 @@ export class Speaker extends Emitter<{
     #lang: string;
     #element: HTMLElement;
     #adapter: Adapter;
-    #options: SpeechOptions;
+    #options: SpeakerOptions;
     #range: Range | null = null;
 
     get rate() {
@@ -141,7 +167,7 @@ export class Speaker extends Emitter<{
      * @param root The root element of the document to speak.
      * @param options A set of options for the library.
      */
-    constructor(root: HTMLElement, options: Partial<SpeechOptions> = {}) {
+    constructor(root: HTMLElement, options: Partial<SpeakerOptions> = {}) {
         super();
 
         this.#element = root;
@@ -330,5 +356,52 @@ export class Speaker extends Emitter<{
      */
     private clear() {
         this.#range = null;
+    }
+
+    /**
+     * Create and handle hihglighter for current reading.
+     * @param options Highlighter options.
+     */
+    setupHighlighter(options: SpeakerHighlighterOptions = {}) {
+        const boundaryHighlighter = options.boundaries !== false ? new Highlighter(options) : null;
+        const sentenceHighlighter = options.sentences !== false ? new Highlighter(options) : null;
+        const blockHighlighter = options.blocks ? new Highlighter(options) : null;
+
+        this.on('cancel', () => {
+            boundaryHighlighter?.setRange(null);
+            sentenceHighlighter?.setRange(null);
+            blockHighlighter?.setRange(null);
+        });
+
+        this.on('end', () => {
+            boundaryHighlighter?.setRange(null);
+            sentenceHighlighter?.setRange(null);
+            blockHighlighter?.setRange(null);
+        });
+
+        this.on('error', () => {
+            boundaryHighlighter?.setRange(null);
+            sentenceHighlighter?.setRange(null);
+            blockHighlighter?.setRange(null);
+        });
+
+        let lastBlock: BlockToken | null = null;
+        let lastSentence: SentenceToken | null = null;
+        this.on('boundary', ({ token, sentence, block }) => {
+            if (lastBlock !== block) {
+                blockHighlighter?.setRange(null);
+                sentenceHighlighter?.setRange(null);
+                boundaryHighlighter?.setRange(null);
+                blockHighlighter?.setRange(block ? createRange(...block.tokens) : null);
+                lastBlock = block;
+            }
+            if (lastSentence !== sentence) {
+                sentenceHighlighter?.setRange(null);
+                boundaryHighlighter?.setRange(null);
+                sentenceHighlighter?.setRange(sentence ? createRange(...sentence.tokens) : null);
+                lastSentence = sentence;
+            }
+            boundaryHighlighter?.setRange(createRange(token));
+        });
     }
 }

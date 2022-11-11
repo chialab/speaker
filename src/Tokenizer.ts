@@ -55,18 +55,6 @@ export interface BlockToken extends GroupToken<BoundaryToken> {
     type: TokenType.BLOCK;
 }
 
-/**
- * Create a range that includes all given tokens.
- * @param tokens Tokens list.
- * @returns A selection range.
- */
-export function createRange(...tokens: Token[]) {
-    const range = new Range();
-    range.setStart(tokens[0].startNode, tokens[0].startOffset);
-    range.setEnd(tokens[tokens.length - 1].endNode, tokens[tokens.length - 1].endOffset);
-    return range;
-}
-
 export type CheckFunction = (node: Node) => boolean;
 
 export type CheckRule = string | CheckFunction | CheckRule[];
