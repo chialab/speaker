@@ -50,9 +50,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Speaker
-          path: |
-            dist
-            types
+          path: dist
 
   test:
     name: Test
@@ -75,9 +73,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: Speaker
-          path: |
-            dist
-            types
+          path: dist
 
       - name: Run tests
         run: yarn test
