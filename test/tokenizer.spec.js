@@ -88,10 +88,10 @@ describe('tokenizer', () => {
     });
 
     it('should handle sentences and blocks', () => {
-        container.innerHTML = '<p>Lorem ipsum</p><p>Lorem ipsum</p>';
+        container.innerHTML = '<p>Lorem ipsum</p><p>Lorem ipsum</p>Lorem ipsum';
 
         const tokens = [...tokenize(container)];
-        expect(tokens).to.have.lengthOf(8);
+        expect(tokens).to.have.lengthOf(12);
         expect(tokens[2]).to.include({
             type: 2,
             startOffset: 0,
@@ -104,10 +104,69 @@ describe('tokenizer', () => {
         });
     });
 
-    it('should ignore tokens', () => {
+    it('should ignore tokens by selector', () => {
         container.innerHTML = '<p>Lorem <span class="ignore">ipsum</span>dolor sit</p><p class="ignore">Lorem ipsum</p>Lorem ipsum';
 
         const tokens = [...tokenize(container, TokenType.BOUNDARY, { ignore: '.ignore' })];
         expect(tokens).to.have.lengthOf(5);
+        expect(tokens[0]).to.include({ text: 'Lorem' });
+        expect(tokens[1]).to.include({ text: 'dolor' });
+        expect(tokens[2]).to.include({ text: 'sit' });
+        expect(tokens[3]).to.include({ text: 'Lorem' });
+        expect(tokens[4]).to.include({ text: 'ipsum' });
+    });
+
+    it('should ignore tokens by selector list', () => {
+        container.innerHTML = '<p>Lorem <span class="ignore1">ipsum</span>dolor sit</p><p class="ignore2">Lorem ipsum</p>Lorem ipsum';
+
+        const tokens = [...tokenize(container, TokenType.BOUNDARY, { ignore: ['.ignore1', '.ignore2'] })];
+        expect(tokens).to.have.lengthOf(5);
+        expect(tokens[0]).to.include({ text: 'Lorem' });
+        expect(tokens[1]).to.include({ text: 'dolor' });
+        expect(tokens[2]).to.include({ text: 'sit' });
+        expect(tokens[3]).to.include({ text: 'Lorem' });
+        expect(tokens[4]).to.include({ text: 'ipsum' });
+    });
+
+    it('should ignore tokens by function', () => {
+        container.innerHTML = '<p>Lorem ipsum</p>dolor sit';
+
+        const tokens = [...tokenize(container, TokenType.BOUNDARY, { ignore: (node) => node.textContent === 'dolor sit' })];
+        expect(tokens).to.have.lengthOf(2);
+        expect(tokens[0]).to.include({ text: 'Lorem' });
+        expect(tokens[1]).to.include({ text: 'ipsum' });
+    });
+
+    it('should should split block elements', () => {
+        container.innerHTML = '<div>Lorem <p>ipsum</p> dolor sit <span style="display: block;">amet</span> consectetur</div>';
+
+        const tokens = [...tokenize(container, TokenType.ALL)];
+        expect(tokens).to.have.lengthOf(16);
+        expect(tokens[0]).to.include({ text: 'Lorem' });
+        expect(tokens[3]).to.include({ text: 'ipsum' });
+        expect(tokens[6]).to.include({ text: 'dolor' });
+        expect(tokens[7]).to.include({ text: 'sit' });
+        expect(tokens[10]).to.include({ text: 'amet' });
+        expect(tokens[13]).to.include({ text: 'consectetur' });
+    });
+
+    it('should use alternative text', () => {
+        container.innerHTML = '<p>Lorem ipsum</p><img alt="alternative text" style="display: block;">dolor <span aria-label="amet">sit</span>';
+
+        const tokens = [...tokenize(container, TokenType.ALL)];
+        expect(tokens).to.have.lengthOf(11);
+        expect(tokens[0]).to.include({ text: 'Lorem' });
+        expect(tokens[1]).to.include({ text: 'ipsum' });
+        expect(tokens[4]).to.include({ text: 'alternative text' });
+        expect(tokens[7]).to.include({ text: 'dolor' });
+        expect(tokens[8]).to.include({ text: 'amet' });
+    });
+
+    it('should use aria-labelledby', () => {
+        container.innerHTML = '<p aria-labelledby="label">Lorem ipsum</p><div id="label" aria-hidden="true">dolor sit</div>';
+
+        const tokens = [...tokenize(container, TokenType.ALL)];
+        expect(tokens).to.have.lengthOf(3);
+        expect(tokens[0]).to.include({ text: 'dolor sit' });
     });
 });

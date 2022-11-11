@@ -35,7 +35,7 @@ import { Speaker } from 'https://unpkg.com/@chialab/speaker?module';
 ### Requirements
 
 [![Build status](https://github.com/chialab/speaker/workflows/Main/badge.svg)](https://github.com/chialab/speaker/actions?query=workflow%3ABuild)
-[![codecov](https://codecov.io/gh/chialab/speaker/branch/master/graph/badge.svg)](https://codecov.io/gh/chialab/speaker)
+[![codecov](https://codecov.io/gh/chialab/speaker/branch/main/graph/badge.svg)](https://codecov.io/gh/chialab/speaker)
 
 ### Build
 
@@ -52,4 +52,4 @@ This will generate the ESM and CJS bundles in the `dist` folder and declaration 
 
 ## License
 
-**Speaker** is released under the [MIT](https://github.com/chialab/speaker/blob/master/LICENSE) license.
+**Speaker** is released under the [MIT](https://github.com/chialab/speaker/blob/main/LICENSE) license.

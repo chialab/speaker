@@ -131,7 +131,7 @@ export interface TokenizerOptions {
     range?: Range;
     ignore?: CheckRule;
     blocks?: CheckRule;
-    attributes?: string[];
+    altAttributes?: string[];
 }
 
 /**
@@ -142,8 +142,8 @@ export interface TokenizerOptions {
  */
 export function* tokenize(element: Element, whatToShow = TokenType.ALL, options: TokenizerOptions = {}) {
     const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
-    const attributes = options.attributes ?? ['alt', 'aria-label', 'aria-labelledby'];
-    const ignore = createCheckFunction(options.ignore);
+    const altAttributes = options.altAttributes ?? ['alt', 'aria-label', 'aria-labelledby'];
+    const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);
     const isBlock = createCheckFunction(options.blocks);
     const range = options.range;
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
@@ -181,20 +181,24 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
         const isElement = currentNode.nodeType === Node.ELEMENT_NODE;
 
         let textValue = '';
-        attributeIterator: for (let i = 0; i < attributes.length; i++) {
-            const attrName = attributes[i];
-            switch (attrName) {
-                case 'aria-labelledby':
-                    break;
-                default: {
-                    if (isElement && (currentNode as Element).hasAttribute(attrName)) {
-                        textValue = (currentNode as Element).getAttribute(attrName) || '';
-                        break attributeIterator;
+        attributeIterator: for (let i = 0; i < altAttributes.length; i++) {
+            const attrName = altAttributes[i];
+            if (isElement && (currentNode as Element).hasAttribute(attrName)) {
+                if (attrName === 'aria-labelledby') {
+                    const selector = (currentNode as Element).getAttribute(attrName) || '';
+                    if (selector) {
+                        const label = currentNode.ownerDocument?.querySelector(`[id="${selector}"]`);
+                        if (label) {
+                            textValue = label.textContent || '';
+                        }
                     }
-                    if ((isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(`[${attrName}]`)) {
-                        continue tokenIterator;
-                    }
+                } else {
+                    textValue = (currentNode as Element).getAttribute(attrName) || '';
                 }
+                break attributeIterator;
+            }
+            if ((isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(`[${attrName}]`)) {
+                continue tokenIterator;
             }
         }
 
@@ -363,20 +367,22 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
         }
 
         const text = currentNode.textContent || '';
-        if (!chunk && !text.trim()) {
-            continue;
-        }
-
         endNode = currentNode as Text;
         let currentStartOffset = 0;
-
-        const regex = chunk ? /\s+/g : /.\s+/g;
+        const regex = /\s+/g;
         let match;
         // eslint-disable-next-line no-cond-assign
         while (match = regex.exec(text)) {
             startNode = startNode ?? endNode;
-            endOffset = chunk ? match.index : match.index + 1;
-            chunk += text.substring(currentStartOffset, endOffset);
+            endOffset = match.index;
+            const currentChunk = text.substring(currentStartOffset, match.index);
+            if (!chunk && !currentChunk.trim()) {
+                startNode = endNode;
+                startOffset = currentStartOffset = endOffset + match[0].length;
+                continue;
+            }
+
+            chunk += currentChunk;
 
             const token: BoundaryToken = {
                 type: TokenType.BOUNDARY,
@@ -412,7 +418,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
 
             chunk = '';
             startNode = endNode;
-            startOffset = currentStartOffset = match.index + match[0].length;
+            startOffset = currentStartOffset = endOffset + match[0].length;
         }
 
         chunk += text.substring(currentStartOffset);

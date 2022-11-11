@@ -26,7 +26,7 @@ export interface SpeakerOptions {
     /**
      * List of attributes for alternative text.
      */
-    attributes?: string[];
+     altAttributes?: string[];
 }
 
 /**
@@ -175,7 +175,7 @@ export class Speaker extends Emitter<{
         this.#options = {
             rate: 1,
             ignore: '[aria-hidden]',
-            attributes: ['aria-label', 'aria-labelledby', 'alt', 'data-mathml'],
+            altAttributes: ['aria-label', 'aria-labelledby', 'alt', 'data-mathml'],
             ...options,
             lang: normalizeLanguage(options.lang ?? getLang()),
         };
@@ -248,7 +248,7 @@ export class Speaker extends Emitter<{
         const tokensIterator = tokenize(this.#element, TokenType.ALL, {
             range: range || undefined,
             ignore: this.#options.ignore,
-            attributes: this.#options.attributes,
+            altAttributes: this.#options.altAttributes,
         });
         for (const token of tokensIterator) {
             switch (token.type) {
