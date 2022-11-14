@@ -1,6 +1,6 @@
 {
   "name": "@chialab/speaker",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A text2speech implementation for HTML documents.",
   "type": "module",
   "main": "dist/cjs/speaker.cjs",
