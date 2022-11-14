@@ -1,11 +1,12 @@
 import type { Event } from './Emitter';
-import type { Token, BoundaryToken, BlockToken, SentenceToken, CheckRule } from './Tokenizer';
+import type { BoundaryToken, BlockToken, SentenceToken, CheckRule } from './Tokenizer';
 import type { HighlighterOptions } from './Highlighter';
 import { Emitter } from './Emitter';
 import { Utterance } from './Utterance';
 import { Adapter } from './Adapter';
 import { TokenType, tokenize } from './Tokenizer';
 import { Highlighter } from './Highlighter';
+import { createRange } from './Range';
 
 /**
  * Speaker options.
@@ -82,18 +83,6 @@ function normalizeVoices(voices: string) {
         .split(',')
         .map((chunk) => chunk.trim())
         .join(',');
-}
-
-/**
- * Create a range that includes all given tokens.
- * @param tokens Tokens list.
- * @returns A selection range.
- */
-function createRange(...tokens: Token[]) {
-    const range = new Range();
-    range.setStart(tokens[0].startNode, tokens[0].startOffset);
-    range.setEnd(tokens[tokens.length - 1].endNode, tokens[tokens.length - 1].endOffset);
-    return range;
 }
 
 export interface SpeakerStartEvent extends Event {
@@ -373,9 +362,23 @@ export class Speaker extends Emitter<{
      * @param options Highlighter options.
      */
     setupHighlighter(options: SpeakerHighlighterOptions = {}) {
-        const boundaryHighlighter = options.boundaries !== false ? new Highlighter(options.boundaries === true ? {} : options.boundaries) : null;
-        const sentenceHighlighter = options.sentences !== false ? new Highlighter(options.sentences === true ? {} : options.sentences) : null;
-        const blockHighlighter = options.blocks ? new Highlighter(options.blocks === true ? {} : options.blocks) : null;
+        const boundaryHighlighter = options.boundaries !== false ?
+            new Highlighter(Object.assign(
+                { root: this.#element },
+                options.boundaries === true ? {} : options.boundaries
+            )) : null;
+
+        const sentenceHighlighter = options.sentences !== false ?
+            new Highlighter(Object.assign(
+                { root: this.#element },
+                options.sentences === true ? {} : options.sentences
+            )) : null;
+
+        const blockHighlighter = options.blocks ?
+            new Highlighter(Object.assign(
+                { root: this.#element },
+                options.blocks === true ? {} : options.blocks
+            )) : null;
 
         this.on('cancel', () => {
             boundaryHighlighter?.setRange(null);
