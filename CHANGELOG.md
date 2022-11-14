@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 2.0.2
+
+### Patch Changes
+
+- 7a8a6a3: Stabilize utterance state
+
 ## 2.0.1
 
 ### Patch Changes
