@@ -214,10 +214,11 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
  */
 export class Adapter {
     #options: SynthesisOptions;
-    #utterances: SpeechSynthesisUtterance[] | null = null;
+    #queue: Utterance[] | null = null;
+    #utterances: Map<Utterance, SpeechSynthesisUtterance> = new Map();
     #playbackDeferred: Deferred | null = null;
-    #currentIndex: number = 0;
-    #currentUtterance: SpeechSynthesisUtterance | null = null;
+    #current: Utterance | null = null;
+    #cancelable = false;
 
     /**
      * Create an instance of the Synthesis adapter.
@@ -249,16 +250,17 @@ export class Adapter {
      */
     async cancel(): Promise<void> {
         const speechSynthesis = getSpeechSynthesis();
-        this.#utterances?.forEach((speechUtterance) => {
-            speechUtterance.onstart = null;
-            speechUtterance.onresume = null;
-            speechUtterance.onpause = null;
-            speechUtterance.onboundary = null;
-            speechUtterance.onend = null;
+        this.#queue?.forEach((utterance) => {
+            const speechUtterance = this.#utterances.get(utterance);
+            if (speechUtterance) {
+                speechUtterance.onstart = null;
+                speechUtterance.onboundary = null;
+                speechUtterance.onend = null;
+            }
         });
-        this.#currentIndex = 0;
-        this.#currentUtterance = null;
-        this.#utterances = null;
+        this.#current = null;
+        this.#queue = null;
+        this.#utterances.clear();
         speechSynthesis.pause();
         speechSynthesis.cancel();
         await awaitState(() => !speechSynthesis.pending && !speechSynthesis.speaking);
@@ -283,16 +285,28 @@ export class Adapter {
      */
     async play(utterances?: Utterance[]): Promise<Deferred> {
         const speechSynthesis = getSpeechSynthesis();
-        if (!utterances && this.#utterances) {
-            if (this.#currentUtterance) {
-                // just resume the playback.
-                speechSynthesis.resume();
-            } else {
-                speechSynthesis.speak(this.#utterances[this.#currentIndex]);
+        if (!utterances && this.#queue) {
+            const deferred = this.#playbackDeferred as Deferred;
+            if (this.#current) {
+                const utterance = this.#current;
+                if (utterance.current === utterance.getLastToken()) {
+                    this.#cancelable = false;
+                    // sometimes the browser does not dispatch end event after resume
+                    // if last boundaries has been met.¯\_(ツ)_/¯
+                    speechSynthesis.pause();
+                    speechSynthesis.cancel();
+                    this.onUtteranceEnd(utterance, this.#queue);
+                    this.#cancelable = true;
+                } else {
+                    // just resume the playback.
+                    speechSynthesis.resume();
+                }
             }
 
-            return this.#playbackDeferred as Deferred;
+            return deferred;
         }
+
+        this.#cancelable = false;
 
         if (this.active) {
             await this.cancel();
@@ -306,14 +320,16 @@ export class Adapter {
             ]);
         }
 
+        this.#cancelable = true;
+
         const deferred = this.#playbackDeferred = new Deferred();
         const voices = await getVoices();
-        const speechUtterances = (utterances || [])
-            .map((utterance, index, queue) => {
+        const queue = this.#queue = utterances || [];
+        queue
+            .forEach((utterance) => {
                 const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
                 const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
-                let boundaries = 0;
-                // setup utterance properties.
+                // setup utterance properties
                 const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
                 if (!voice) {
                     return;
@@ -324,68 +340,20 @@ export class Adapter {
                 speechUtterance.rate = utterance.rate;
 
                 // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
-                speechUtterance.onstart = () => {
-                    this.#currentIndex = index;
-                    this.#currentUtterance = speechUtterance;
-                    utterance.started();
-                };
-
-                speechUtterance.onpause = async () => {
-                    if (boundaries === utterance.length) {
-                        speechSynthesis.pause();
-                        speechSynthesis.cancel();
-                        // sometimes the browser does not dispatch end event after resume
-                        // if last boundaries has been met.¯\_(ツ)_ /¯
-                        this.#currentIndex++;
-                        this.#currentUtterance = null;
-                        utterance.ended();
-                    }
-                };
-
-                speechUtterance.onboundary = ({ charIndex }) => {
-                    boundaries++;
-                    utterance.boundary(utterance.getToken(charIndex) as BoundaryToken);
-                };
-
-                if (index === queue.length - 1) {
-                    speechUtterance.onend = () => {
-                        if (this.paused) {
-                            this.cancel();
-                            return;
-                        }
-
-                        utterance.ended();
-                        deferred.resolve();
-                        this.#playbackDeferred = null;
-                    };
-                } else {
-                    speechUtterance.onend = () => {
-                        if (this.paused) {
-                            return;
-                        }
-
-                        this.#currentIndex++;
-                        this.#currentUtterance = null;
-                        utterance.ended();
-                        speechSynthesis.speak(speechUtterances[index + 1]);
-                        if (speechSynthesis.paused) {
-                            speechSynthesis.resume();
-                        }
-                    };
-                }
+                speechUtterance.onstart = () => this.onUtteranceStart(utterance, queue);
+                speechUtterance.onboundary = (event: SpeechSynthesisEvent) => this.onUtteranceBoundary(utterance, event.charIndex);
+                speechUtterance.onend = () => this.onUtteranceEnd(utterance, queue);
+                this.#utterances.set(utterance, speechUtterance);
 
                 return speechUtterance;
-            })
-            .filter(Boolean) as SpeechSynthesisUtterance[];
+            });
 
-        if (!speechUtterances.length) {
+        if (!queue.length) {
             deferred.resolve();
             return deferred;
         }
 
-        // store utterances queue.
-        this.#utterances = speechUtterances;
-        speechSynthesis.speak(speechUtterances[0]);
+        speechSynthesis.speak(this.#utterances.get(queue[0] as Utterance) as SpeechSynthesisUtterance);
         if (speechSynthesis.paused) {
             speechSynthesis.resume();
         }
@@ -393,6 +361,58 @@ export class Adapter {
         await awaitState(() => speechSynthesis.speaking && !speechSynthesis.paused);
 
         return deferred;
+    }
+
+    /**
+     * Utterance started hook.
+     * @param utterance The started utterance.
+     * @param queue The list of uttereances queued.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    private async onUtteranceStart(utterance: Utterance, queue: Utterance[]) {
+        this.#current = utterance;
+        await utterance.start();
+    }
+
+    /**
+     * Utterance boundary hook.
+     * @param utterance The started utterance.
+     * @param charIndex The char index boundary.
+     */
+    private async onUtteranceBoundary(utterance: Utterance, charIndex: number) {
+        await utterance.boundary(utterance.getToken(charIndex) as BoundaryToken);
+    }
+
+    /**
+     * Utterance ended hook.
+     * @param utterance The ended utterance.
+     * @param queue The list of uttereances queued.
+     */
+    private async onUtteranceEnd(utterance: Utterance, queue: Utterance[]) {
+        if (utterance.ended) {
+            return;
+        }
+        if (this.paused && this.#cancelable) {
+            return this.cancel();
+        }
+
+        this.#current = null;
+        await utterance.end();
+
+        const index = queue.indexOf(utterance);
+        if (index < queue.length - 1) {
+            const speechUtterance = this.#utterances.get(queue[index + 1]);
+            if (speechUtterance) {
+                speechSynthesis.speak(speechUtterance);
+                if (speechSynthesis.paused) {
+                    speechSynthesis.resume();
+                }
+            }
+            return;
+        }
+
+        this.#playbackDeferred?.resolve();
+        this.#playbackDeferred = null;
     }
 
     /**

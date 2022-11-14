@@ -42,6 +42,9 @@ export class Utterance extends Emitter<{
     #voices: string;
     #rate: number;
     #text: string = '';
+    #started = false;
+    #ended = false;
+    #current: BoundaryToken | null = null;
 
     /**
      * Create an Utterance instance.
@@ -83,6 +86,27 @@ export class Utterance extends Emitter<{
      */
     get rate() {
         return this.#rate;
+    }
+
+    /**
+     * Utterance started state.
+     */
+    get started() {
+        return this.#started;
+    }
+
+    /**
+     * Utterance ended state.
+     */
+    get ended() {
+        return this.#ended;
+    }
+
+    /**
+     * The corrent boundary.
+     */
+    get current() {
+        return this.#current;
     }
 
     /**
@@ -145,7 +169,8 @@ export class Utterance extends Emitter<{
     /**
      * Flags the utterance as started.
      */
-    async started() {
+    async start() {
+        this.#started = true;
         return this.trigger('start');
     }
 
@@ -153,13 +178,17 @@ export class Utterance extends Emitter<{
      * Trigger a token boundary during the speaking.
      */
     async boundary(token: BoundaryToken) {
+        this.#current = token;
         return this.trigger('boundary', token);
     }
 
     /**
      * Flags the utterance as ended.
      */
-    async ended() {
+    async end() {
+        this.#current = null;
+        this.#started = false;
+        this.#ended = true;
         return this.trigger('end');
     }
 }
