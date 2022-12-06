@@ -32,17 +32,20 @@ import { Speaker } from 'https://unpkg.com/@chialab/speaker?module';
 
 ## Development
 
-### Requirements
-
 [![Build status](https://github.com/chialab/speaker/workflows/Main/badge.svg)](https://github.com/chialab/speaker/actions?query=workflow%3ABuild)
 [![codecov](https://codecov.io/gh/chialab/speaker/branch/main/graph/badge.svg)](https://codecov.io/gh/chialab/speaker)
 
 ### Build
 
-Install the dependencies and run the `build` script:
+Install the dependencies
 
 ```
 yarn
+```
+
+and run the `build` script:
+
+```
 yarn build
 ```
 
