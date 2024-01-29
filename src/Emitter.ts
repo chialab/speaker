@@ -61,7 +61,7 @@ export class Emitter<EventsMap extends Record<string, Event>> {
                 return result.then(() => callback.call(this, data));
             }
 
-            return result = callback.call(this, data);
+            return (result = callback.call(this, data));
         }, undefined);
     }
 }

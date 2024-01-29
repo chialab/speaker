@@ -1,297 +1,325 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="X-UA-Compatible"
+            content="ie=edge" />
+        <title>Speaker</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+            @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Speaker</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            font-size: 18px;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-box-sizing: border-box;
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-        }
-
-        body {
-            padding: 5em 0;
-        }
-
-        article {
-            position: relative;
-            width: 60ch;
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 2em 1em;
-            line-height: 1.4;
-        }
-
-        article *::selection {
-            background: rgb(255, 243, 189);
-        }
-
-        article a {
-            color: rgb(0, 143, 255);
-            text-decoration: none;
-        }
-
-        article img {
-            display: block;
-            max-width: 100%;
-            -webkit-user-drag: none;
-        }
-
-        article cite {
-            display: block;
-            padding: 0.5em 1em;
-            border-left: solid 4px #ccc;
-        }
-
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            width: 100%;
-            padding: 0.5em 1em;
-            background: rgba(255, 255, 255, 0.95);
-            border-bottom: solid 2px orange;
-        }
-
-        nav * {
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        nav button {
-            width: 2em;
-            height: 2em;
-            margin-right: 0.5em;
-            padding: 0;
-            font-family: 'Material Icons', sans-serif;
-            font-size: 2em;
-            background: transparent;
-            border: 0;
-            border-radius: 50%;
-            outline: none;
-            cursor: pointer;
-            transition: background 250ms ease-out;
-        }
-
-        nav button:hover {
-            background: #f5f5f5;
-        }
-
-        nav button:active {
-            background: #d5d5d5;
-        }
-
-        nav button[disabled] {
-            display: none;
-        }
-
-        nav select + select {
-            margin-left: 1em;
-        }
-
-        .highlighter {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .highlighter-rect,
-        .highlighter-rect-word {
-            box-sizing: content-box;
-            position: absolute;
-            margin-top: -4px;
-            margin-left: -4px;
-            background: #ffc800;
-            border: solid 4px transparent;
-        }
-
-        .highlighter-rect-word {
-            background: #ff9300;
-            border-radius: 10px;
-            transition: left 150ms, width 150ms;
-            will-change: left, width;
-        }
-
-        .highlighter-rect:first-child {
-            border-top-left-radius: 10px;
-        }
-
-        .highlighter-rect:first-child:only-child {
-            border-bottom-left-radius: 10px;
-        }
-
-        .highlighter-rect:first-child:not(:only-child) {
-            border-top-right-radius: 10px;
-        }
-
-        .highlighter-rect:last-child {
-            border-bottom-right-radius: 10px;
-        }
-
-        .highlighter-rect:last-child:only-child {
-            border-top-right-radius: 10px;
-        }
-
-        .highlighter-rect:last-child:not(:only-child) {
-            border-bottom-left-radius: 10px;
-        }
-
-    </style>
-</head>
-
-<body>
-    <nav>
-        <button id="all">volume_up</button>
-        <button id="play" disabled>play_arrow</button>
-        <button id="stop" disabled>stop</button>
-        <select id="rate">
-            <option value="0.5">0.5x</option>
-            <option value="1" selected>1x</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-            <option value="2">2x</option>
-        </select>
-    </nav>
-    <article id="main">
-        <h1 lang="en-US">The Batman</h1>
-        <p lang="it-IT">
-            <span lang="en-US">Bruce Wayne</span>, insieme al padre <span lang="en-US">Thomas</span> e alla madre <span
-                lang="en-US">Martha</span>, va al cinema il 26 giugno per vedere <span style="--voice: male;">Il segno di Zorro</span>; all'uscita i
-            genitori vengono rapinati da <span lang="en-US">Joe Chill</span> che nell'aggressione li uccide. Il
-            bambino, rimasto traumatizzato, promette un giorno di iniziare a combattere i criminali con lo scopo di
-            rendere la città di <span lang="en-US">Gotham</span> un luogo più sicuro. <span lang="en-US">Bruce</span>,
-            ereditato il patrimonio di famiglia, viene cresciuto dal maggiordomo <span lang="en-US">Alfred Pennyworth</span>
-            e, raggiunta la maturità, gira il mondo apprendendo arti marziali e tecniche investigative dai migliori
-            maestri. Ritornato a casa, un pipistrello irrompe da una finestra della villa dandogli l'idea di realizzare
-            un travestimento ispirato all'animale per spaventare i criminali.
-        </p>
-        <cite lang="en-US">
-            Criminals are a superstitious cowardly lot. So my disguise must be able to strike terror into their hearts.
-            I must be a creature of the night, black, terrible.
-        </cite>
-        <p lang="it-IT">
-            Grazie al suo patrimonio mette a punto un sofisticato equipaggiamento dotandosi di prototipi dell'azienda
-            di famiglia, la <span lang="en-US">Wayne Enterprises</span>, con l'aiuto di <span lang="en-US">Lucius Fox</span>,
-            e collaborando con il commissario di polizia <span lang="en-US">James Gordon</span> nella lotta alla
-            malavita. Oltre alla mafia, nei panni di Batman, combatte anche criminali come <span lang="en-US">Joker</span>,
-            l'Enigmista, l'ex procuratore distrettuale <span lang="en-US">Harvey Dent</span> divenuto il criminale Due
-            Facce, il Pinguino, <span lang="en-US">Mister Freeze</span> e molti altri.
-        </p>
-        <img lang="it-IT" src="https://s01.diziler.com/img/content/16-08/29/batman-1966-2.jpg" alt="Foto di Batman, interpretato da Adam West, che usa il bat-telefono">
-        <footer lang="en-US">
-            Source: <a href="https://it.wikipedia.org/wiki/Batman#Biografia_del_personaggio" target="_blank" aria-label="Wikipedia page about Batman">Wikipedia</a>
-        </footer>
-    </article>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-    <script type="module">
-        import { Speaker } from './dist/esm/speaker.js';
-
-        const readButton = document.querySelector('#all');
-        const playButton = document.querySelector('#play');
-        const stopButton = document.querySelector('#stop');
-        const rateSelect = document.querySelector('#rate');
-        const article = document.querySelector('article');
-        const speaker = new Speaker(article);
-        console.log(speaker);
-
-        speaker.setupHighlighter({
-            boundaries: {
-                rectClass: 'highlighter-rect-word',
-            },
-        });
-
-        readButton.addEventListener('click', async (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-            const selection = window.getSelection();
-            const range = (selection.rangeCount && !selection.isCollapsed && selection.getRangeAt(0)) || null;
-            speaker.play(range);
-            selection.removeAllRanges();
-        });
-
-        playButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-
-            if (speaker.paused) {
-                speaker.play();
-            } else {
-                speaker.pause();
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Inter', sans-serif;
+                font-size: 18px;
             }
-        });
 
-        stopButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-            if (speaker.active) {
-                speaker.cancel();
+            * {
+                box-sizing: border-box;
+                -webkit-box-sizing: border-box;
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
             }
-        });
 
-        rateSelect.addEventListener('change', (event) => {
-            speaker.setRate(event.currentTarget.value);
-        });
+            body {
+                padding: 5em 0;
+            }
 
-        speaker.on('play', () => {
-            playButton.disabled = false;
-            playButton.textContent = 'pause';
-            stopButton.disabled = false;
-        });
+            article {
+                position: relative;
+                width: 60ch;
+                max-width: 100%;
+                margin: 0 auto;
+                padding: 2em 1em;
+                line-height: 1.4;
+            }
 
-        speaker.on('pause', () => {
-            playButton.textContent = 'play_arrow';
-        });
+            article *::selection {
+                background: rgb(255, 243, 189);
+            }
 
-        speaker.on('cancel', () => {
-            playButton.disabled = true;
-            stopButton.disabled = true;
-        });
+            article a {
+                color: rgb(0, 143, 255);
+                text-decoration: none;
+            }
 
-        speaker.on('end', () => {
-            playButton.disabled = true;
-            stopButton.disabled = true;
-        });
+            article img {
+                display: block;
+                max-width: 100%;
+                -webkit-user-drag: none;
+            }
 
-        speaker.on('error', (err) => {
-            alert(err.message);
-        });
+            article cite {
+                display: block;
+                padding: 0.5em 1em;
+                border-left: solid 4px #ccc;
+            }
 
-        document.addEventListener('click', (event) => {
-            if (event.target.closest('button')) {
+            nav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                width: 100%;
+                padding: 0.5em 1em;
+                background: rgba(255, 255, 255, 0.95);
+                border-bottom: solid 2px orange;
+            }
+
+            nav * {
+                user-select: none;
+                -webkit-user-select: none;
+            }
+
+            nav button {
+                width: 2em;
+                height: 2em;
+                margin-right: 0.5em;
+                padding: 0;
+                font-family: 'Material Icons', sans-serif;
+                font-size: 2em;
+                background: transparent;
+                border: 0;
+                border-radius: 50%;
+                outline: none;
+                cursor: pointer;
+                transition: background 250ms ease-out;
+            }
+
+            nav button:hover {
+                background: #f5f5f5;
+            }
+
+            nav button:active {
+                background: #d5d5d5;
+            }
+
+            nav button[disabled] {
+                display: none;
+            }
+
+            nav select + select {
+                margin-left: 1em;
+            }
+
+            .highlighter {
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: -1;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                overflow: hidden;
+            }
+
+            .highlighter-rect,
+            .highlighter-rect-word {
+                box-sizing: content-box;
+                position: absolute;
+                margin-top: -4px;
+                margin-left: -4px;
+                background: #ffc800;
+                border: solid 4px transparent;
+            }
+
+            .highlighter-rect-word {
+                background: #ff9300;
+                border-radius: 10px;
+                transition:
+                    left 150ms,
+                    width 150ms;
+                will-change: left, width;
+            }
+
+            .highlighter-rect:first-child {
+                border-top-left-radius: 10px;
+            }
+
+            .highlighter-rect:first-child:only-child {
+                border-bottom-left-radius: 10px;
+            }
+
+            .highlighter-rect:first-child:not(:only-child) {
+                border-top-right-radius: 10px;
+            }
+
+            .highlighter-rect:last-child {
+                border-bottom-right-radius: 10px;
+            }
+
+            .highlighter-rect:last-child:only-child {
+                border-top-right-radius: 10px;
+            }
+
+            .highlighter-rect:last-child:not(:only-child) {
+                border-bottom-left-radius: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <nav>
+            <button id="all">volume_up</button>
+            <button
+                id="play"
+                disabled
+                >play_arrow</button
+            >
+            <button
+                id="stop"
+                disabled
+                >stop</button
+            >
+            <select id="rate">
+                <option value="0.5">0.5x</option>
+                <option
+                    value="1"
+                    selected
+                    >1x</option
+                >
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2x</option>
+            </select>
+        </nav>
+        <article id="main">
+            <h1 lang="en-US">The Batman</h1>
+            <p lang="it-IT">
+                <span lang="en-US">Bruce Wayne</span>, insieme al padre <span lang="en-US">Thomas</span> e alla madre
+                <span lang="en-US">Martha</span>, va al cinema il 26 giugno per vedere
+                <span style="--voice: male">Il segno di Zorro</span>; all'uscita i genitori vengono rapinati da
+                <span lang="en-US">Joe Chill</span> che nell'aggressione li uccide. Il bambino, rimasto traumatizzato,
+                promette un giorno di iniziare a combattere i criminali con lo scopo di rendere la città di
+                <span lang="en-US">Gotham</span> un luogo più sicuro. <span lang="en-US">Bruce</span>, ereditato il
+                patrimonio di famiglia, viene cresciuto dal maggiordomo <span lang="en-US">Alfred Pennyworth</span>
+                e, raggiunta la maturità, gira il mondo apprendendo arti marziali e tecniche investigative dai migliori
+                maestri. Ritornato a casa, un pipistrello irrompe da una finestra della villa dandogli l'idea di
+                realizzare un travestimento ispirato all'animale per spaventare i criminali.
+            </p>
+            <cite lang="en-US">
+                Criminals are a superstitious cowardly lot. So my disguise must be able to strike terror into their
+                hearts. I must be a creature of the night, black, terrible.
+            </cite>
+            <p lang="it-IT">
+                Grazie al suo patrimonio mette a punto un sofisticato equipaggiamento dotandosi di prototipi
+                dell'azienda di famiglia, la <span lang="en-US">Wayne Enterprises</span>, con l'aiuto di
+                <span lang="en-US">Lucius Fox</span>, e collaborando con il commissario di polizia
+                <span lang="en-US">James Gordon</span> nella lotta alla malavita. Oltre alla mafia, nei panni di Batman,
+                combatte anche criminali come <span lang="en-US">Joker</span>, l'Enigmista, l'ex procuratore
+                distrettuale <span lang="en-US">Harvey Dent</span> divenuto il criminale Due Facce, il Pinguino,
+                <span lang="en-US">Mister Freeze</span> e molti altri.
+            </p>
+            <img
+                lang="it-IT"
+                src="https://s01.diziler.com/img/content/16-08/29/batman-1966-2.jpg"
+                alt="Foto di Batman, interpretato da Adam West, che usa il bat-telefono" />
+            <footer lang="en-US">
+                Source:
+                <a
+                    href="https://it.wikipedia.org/wiki/Batman#Biografia_del_personaggio"
+                    target="_blank"
+                    aria-label="Wikipedia page about Batman"
+                    >Wikipedia</a
+                >
+            </footer>
+        </article>
+        <script
+            type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+        <script type="module">
+            import { Speaker } from './dist/esm/speaker.js';
+
+            const readButton = document.querySelector('#all');
+            const playButton = document.querySelector('#play');
+            const stopButton = document.querySelector('#stop');
+            const rateSelect = document.querySelector('#rate');
+            const article = document.querySelector('article');
+            const speaker = new Speaker(article);
+            console.log(speaker);
+
+            speaker.setupHighlighter({
+                boundaries: {
+                    rectClass: 'highlighter-rect-word',
+                },
+            });
+
+            readButton.addEventListener('click', async (event) => {
+                event.stopPropagation();
                 event.preventDefault();
-            }
-        });
+                const selection = window.getSelection();
+                const range = (selection.rangeCount && !selection.isCollapsed && selection.getRangeAt(0)) || null;
+                speaker.play(range);
+                selection.removeAllRanges();
+            });
 
-        document.addEventListener('touchend', (event) => {
-            if (event.target.closest('button')) {
+            playButton.addEventListener('click', (event) => {
+                event.stopPropagation();
                 event.preventDefault();
-                event.target.dispatchEvent(new Event('click'));
-            }
-        });
-    </script>
-</body>
 
+                if (speaker.paused) {
+                    speaker.play();
+                } else {
+                    speaker.pause();
+                }
+            });
+
+            stopButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                if (speaker.active) {
+                    speaker.cancel();
+                }
+            });
+
+            rateSelect.addEventListener('change', (event) => {
+                speaker.setRate(event.currentTarget.value);
+            });
+
+            speaker.on('play', () => {
+                playButton.disabled = false;
+                playButton.textContent = 'pause';
+                stopButton.disabled = false;
+            });
+
+            speaker.on('pause', () => {
+                playButton.textContent = 'play_arrow';
+            });
+
+            speaker.on('cancel', () => {
+                playButton.disabled = true;
+                stopButton.disabled = true;
+            });
+
+            speaker.on('end', () => {
+                playButton.disabled = true;
+                stopButton.disabled = true;
+            });
+
+            speaker.on('error', (err) => {
+                alert(err.message);
+            });
+
+            document.addEventListener('click', (event) => {
+                if (event.target.closest('button')) {
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener('touchend', (event) => {
+                if (event.target.closest('button')) {
+                    event.preventDefault();
+                    event.target.dispatchEvent(new Event('click'));
+                }
+            });
+        </script>
+    </body>
 </html>

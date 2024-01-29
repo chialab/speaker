@@ -71,7 +71,7 @@ function createCheckFunction(rules?: CheckRule): CheckFunction {
     }
     if (typeof rules === 'string') {
         return (node) => {
-            const containerElement = node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement;
+            const containerElement = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
             if (!containerElement) {
                 return true;
             }
@@ -112,7 +112,7 @@ function checkDisplayBlock(element: Element) {
  * @returns True if the node is hidden.
  */
 function checkDisplayNone(node: Node) {
-    const containerElement = node.nodeType === Node.ELEMENT_NODE ? node as HTMLElement : node.parentElement;
+    const containerElement = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node.parentElement;
     if (!containerElement) {
         return true;
     }
@@ -126,7 +126,11 @@ function checkDisplayNone(node: Node) {
  * @returns The language or null.
  */
 function getNodeLang(node: Node) {
-    return (node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement)?.closest('[lang]')?.getAttribute('lang') ?? null;
+    return (
+        (node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement)
+            ?.closest('[lang]')
+            ?.getAttribute('lang') ?? null
+    );
 }
 
 /**
@@ -135,7 +139,7 @@ function getNodeLang(node: Node) {
  * @returns The voice name or null.
  */
 function getNodeVoice(node: Node) {
-    return node.parentElement ? (getComputedStyle(node.parentElement).getPropertyValue('--voice') || null) : null;
+    return node.parentElement ? getComputedStyle(node.parentElement).getPropertyValue('--voice') || null : null;
 }
 
 /**
@@ -178,7 +182,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     let currentBlock: Element | null = null;
     let currentNode: Node | null = null;
     // eslint-disable-next-line no-cond-assign
-    tokenIterator: while (currentNode = walker.nextNode()) {
+    tokenIterator: while ((currentNode = walker.nextNode())) {
         if (range) {
             if (range.startContainer.compareDocumentPosition(currentNode) === Node.DOCUMENT_POSITION_PRECEDING) {
                 continue;
@@ -386,7 +390,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
         const regex = /\s+/g;
         let match;
         // eslint-disable-next-line no-cond-assign
-        while (match = regex.exec(text)) {
+        while ((match = regex.exec(text))) {
             startNode = startNode ?? endNode;
             endOffset = match.index;
             const currentChunk = text.substring(currentStartOffset, match.index);

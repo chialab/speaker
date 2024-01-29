@@ -9,19 +9,23 @@
     "outDir": "./dist",
     "declaration": true,
     "declarationDir": "types",
+    "emitDeclarationOnly": true,
     "noUnusedLocals": true,
     "noImplicitReturns": true,
+    "strictPropertyInitialization": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
+    "skipLibCheck": true,
     "allowJs": true,
     "checkJs": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "isolatedModules": false,
+    "isolatedModules": true,
     "moduleResolution": "node",
+    "paths": {
+      "@chialab/speaker": ["./src/index.ts"],
+    },
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"],
 }

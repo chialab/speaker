@@ -1,12 +1,16 @@
-import type { Event } from './Emitter';
-import type { BoundaryToken, BlockToken, SentenceToken, CheckRule } from './Tokenizer';
-import type { HighlighterOptions } from './Highlighter';
-import { Emitter } from './Emitter';
-import { Utterance } from './Utterance';
 import { Adapter } from './Adapter';
-import { TokenType, tokenize } from './Tokenizer';
-import { Highlighter } from './Highlighter';
+import { Emitter, type Event } from './Emitter';
+import { Highlighter, type HighlighterOptions } from './Highlighter';
 import { createRange } from './Range';
+import {
+    tokenize,
+    TokenType,
+    type BlockToken,
+    type BoundaryToken,
+    type CheckRule,
+    type SentenceToken,
+} from './Tokenizer';
+import { Utterance } from './Utterance';
 
 /**
  * Speaker options.
@@ -27,7 +31,7 @@ export interface SpeakerOptions {
     /**
      * List of attributes for alternative text.
      */
-     altAttributes?: string[];
+    altAttributes?: string[];
 }
 
 /**
@@ -257,14 +261,21 @@ export class Speaker extends Emitter<{
                         const language = normalizeLanguage(childToken.lang ?? this.#lang);
                         const voices = normalizeVoices(childToken.voice || '');
 
-                        if (!currentUtterance || currentUtterance.lang !== language || currentUtterance.voices !== voices) {
+                        if (
+                            !currentUtterance ||
+                            currentUtterance.lang !== language ||
+                            currentUtterance.voices !== voices
+                        ) {
                             currentUtterance = new Utterance(language, voices, this.#rate);
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
                                 this.trigger('boundary', {
                                     token: currentToken,
                                     block: token,
-                                    sentence: sentences.find((sentenceToken) => sentenceToken.tokens.includes(currentToken)) ?? null,
+                                    sentence:
+                                        sentences.find((sentenceToken) =>
+                                            sentenceToken.tokens.includes(currentToken)
+                                        ) ?? null,
                                 });
                             });
                             queue.push(currentUtterance);
@@ -295,7 +306,7 @@ export class Speaker extends Emitter<{
                             return;
                         }
                     } catch (err) {
-                        await this.trigger('error', err as Error || new Error('Unknown error'));
+                        await this.trigger('error', (err as Error) || new Error('Unknown error'));
                         this.clear();
                         throw err;
                     }
@@ -362,23 +373,23 @@ export class Speaker extends Emitter<{
      * @param options Highlighter options.
      */
     setupHighlighter(options: SpeakerHighlighterOptions = {}) {
-        const boundaryHighlighter = options.boundaries !== false ?
-            new Highlighter(Object.assign(
-                { root: this.#element },
-                options.boundaries === true ? {} : options.boundaries
-            )) : null;
+        const boundaryHighlighter =
+            options.boundaries !== false
+                ? new Highlighter(
+                      Object.assign({ root: this.#element }, options.boundaries === true ? {} : options.boundaries)
+                  )
+                : null;
 
-        const sentenceHighlighter = options.sentences !== false ?
-            new Highlighter(Object.assign(
-                { root: this.#element },
-                options.sentences === true ? {} : options.sentences
-            )) : null;
+        const sentenceHighlighter =
+            options.sentences !== false
+                ? new Highlighter(
+                      Object.assign({ root: this.#element }, options.sentences === true ? {} : options.sentences)
+                  )
+                : null;
 
-        const blockHighlighter = options.blocks ?
-            new Highlighter(Object.assign(
-                { root: this.#element },
-                options.blocks === true ? {} : options.blocks
-            )) : null;
+        const blockHighlighter = options.blocks
+            ? new Highlighter(Object.assign({ root: this.#element }, options.blocks === true ? {} : options.blocks))
+            : null;
 
         this.on('cancel', () => {
             boundaryHighlighter?.setRange(null);

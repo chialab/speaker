@@ -1,11 +1,13 @@
+import { Deferred } from './Deferred';
 import type { BoundaryToken } from './Tokenizer';
 import type { Utterance } from './Utterance';
-import { Deferred } from './Deferred';
 
 export function checkSupport() {
-    if (typeof window !== 'undefined' &&
+    if (
+        typeof window !== 'undefined' &&
         typeof window.speechSynthesis !== 'undefined' &&
-        typeof window.SpeechSynthesisUtterance !== 'undefined') {
+        typeof window.SpeechSynthesisUtterance !== 'undefined'
+    ) {
         return true;
     }
 
@@ -84,7 +86,7 @@ function normalizeVoiceName(name: string) {
     return name.toLowerCase().replace(SAFARI_PREFIX, '');
 }
 
-let rejectInterval: Function|undefined;
+let rejectInterval: Function | undefined;
 
 /**
  * SpeechSynthesis API are not deterministic.
@@ -196,17 +198,9 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
         'Victoria',
         'Zuzana',
     ].map(normalizeVoiceName),
-    maleVoices: [
-        'Google UK English Male',
-        'Daniel',
-        'Diego',
-        'Fred',
-        'Jorge',
-        'Juan',
-        'Luca',
-        'Thomas',
-        'Xander',
-    ].map(normalizeVoiceName),
+    maleVoices: ['Google UK English Male', 'Daniel', 'Diego', 'Fred', 'Jorge', 'Juan', 'Luca', 'Thomas', 'Xander'].map(
+        normalizeVoiceName
+    ),
 };
 
 /**
@@ -322,31 +316,31 @@ export class Adapter {
 
         this.#cancelable = true;
 
-        const deferred = this.#playbackDeferred = new Deferred();
+        const deferred = (this.#playbackDeferred = new Deferred());
         const voices = await getVoices();
-        const queue = this.#queue = utterances || [];
-        queue
-            .forEach((utterance) => {
-                const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
-                const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
-                // setup utterance properties
-                const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
-                if (!voice) {
-                    return;
-                }
+        const queue = (this.#queue = utterances || []);
+        queue.forEach((utterance) => {
+            const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
+            const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
+            // setup utterance properties
+            const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
+            if (!voice) {
+                return;
+            }
 
-                speechUtterance.voice = voice;
-                speechUtterance.lang = voice.lang;
-                speechUtterance.rate = utterance.rate;
+            speechUtterance.voice = voice;
+            speechUtterance.lang = voice.lang;
+            speechUtterance.rate = utterance.rate;
 
-                // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
-                speechUtterance.onstart = () => this.onUtteranceStart(utterance, queue);
-                speechUtterance.onboundary = (event: SpeechSynthesisEvent) => this.onUtteranceBoundary(utterance, event.charIndex);
-                speechUtterance.onend = () => this.onUtteranceEnd(utterance, queue);
-                this.#utterances.set(utterance, speechUtterance);
+            // listen SpeechSynthesisUtterance events in order to trigger Utterance callbacks
+            speechUtterance.onstart = () => this.onUtteranceStart(utterance, queue);
+            speechUtterance.onboundary = (event: SpeechSynthesisEvent) =>
+                this.onUtteranceBoundary(utterance, event.charIndex);
+            speechUtterance.onend = () => this.onUtteranceEnd(utterance, queue);
+            this.#utterances.set(utterance, speechUtterance);
 
-                return speechUtterance;
-            });
+            return speechUtterance;
+        });
 
         if (!queue.length) {
             deferred.resolve();
@@ -436,28 +430,29 @@ export class Adapter {
         }
 
         if (requestedVoices.length) {
-            const voice = requestedVoices
-                .reduce((voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
+            const voice = requestedVoices.reduce(
+                (voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
                     voiceType = normalizeVoiceName(voiceType);
 
                     if (voice) {
                         return voice;
                     }
                     if (voiceType === 'male') {
-                        return availableVoices.find((voice) =>
-                            maleVoices.includes(normalizeVoiceName(voice.name))
-                        ) || null;
+                        return (
+                            availableVoices.find((voice) => maleVoices.includes(normalizeVoiceName(voice.name))) || null
+                        );
                     }
                     if (voiceType === 'female') {
-                        return availableVoices.find((voice) =>
-                            femaleVoices.includes(normalizeVoiceName(voice.name))
-                        ) || null;
+                        return (
+                            availableVoices.find((voice) => femaleVoices.includes(normalizeVoiceName(voice.name))) ||
+                            null
+                        );
                     }
 
-                    return availableVoices.find((voice) =>
-                        normalizeVoiceName(voice.name) === voiceType
-                    ) || null;
-                }, null);
+                    return availableVoices.find((voice) => normalizeVoiceName(voice.name) === voiceType) || null;
+                },
+                null
+            );
             if (voice) {
                 return voice;
             }

@@ -35,9 +35,11 @@ export class Highlighter {
      * @param range
      */
     setRange(range: Range | null) {
-        if ((range && !this.#currentRange) ||
+        if (
+            (range && !this.#currentRange) ||
             (!range && this.#currentRange) ||
-            (range && !compareRanges(range, this.#currentRange as Range))) {
+            (range && !compareRanges(range, this.#currentRange as Range))
+        ) {
             this.#currentRange = range;
             this.update();
         }

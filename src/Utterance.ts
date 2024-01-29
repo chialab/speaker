@@ -1,6 +1,5 @@
+import { Emitter, type Event } from './Emitter';
 import type { BoundaryToken } from './Tokenizer';
-import type { Event } from './Emitter';
-import { Emitter } from './Emitter';
 
 export interface UtteranceToken {
     /**
@@ -163,7 +162,10 @@ export class Utterance extends Emitter<{
      * @return The found token at the given position.
      */
     getToken(charIndex: number) {
-        return this.#tokens.find(({ startOffset, endOffset }) => charIndex >= startOffset && charIndex <= endOffset)?.token ?? null;
+        return (
+            this.#tokens.find(({ startOffset, endOffset }) => charIndex >= startOffset && charIndex <= endOffset)
+                ?.token ?? null
+        );
     }
 
     /**

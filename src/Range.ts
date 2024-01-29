@@ -19,10 +19,12 @@ export function createRange(...tokens: Token[]) {
  * @returns True if ranges are equivalent.
  */
 export function compareRanges(range1: Range, range2: Range) {
-    return range1.startContainer === range2.startContainer &&
+    return (
+        range1.startContainer === range2.startContainer &&
         range1.startOffset === range2.startOffset &&
         range1.endContainer === range2.endContainer &&
-        range1.endOffset === range2.endOffset;
+        range1.endOffset === range2.endOffset
+    );
 }
 
 /**
@@ -42,7 +44,11 @@ export function getClientRects(range: Range) {
             // remove empty
             continue;
         }
-        if (collected.find((r) => r.top === rect.top && r.left === rect.left && r.width === rect.width && r.height === rect.height)) {
+        if (
+            collected.find(
+                (r) => r.top === rect.top && r.left === rect.left && r.width === rect.width && r.height === rect.height
+            )
+        ) {
             // remove duplicates
             continue;
         }
@@ -50,7 +56,7 @@ export function getClientRects(range: Range) {
         collected.push(rect);
 
         const last = rects[rects.length - 1];
-        if (!last || last.top !== rect.top || last.height !== rect.height || ((rect.left - (last.left + last.width)) > 1)) {
+        if (!last || last.top !== rect.top || last.height !== rect.height || rect.left - (last.left + last.width) > 1) {
             rects.push(new DOMRect(rect.left, rect.top, rect.width, rect.height));
         } else {
             last.width += rect.width;
