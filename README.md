@@ -10,8 +10,6 @@
 
 ## Get the library
 
-### NPM
-
 Install via NPM or Yarn:
 
 ```
@@ -20,12 +18,6 @@ npm i @chialab/speaker
 
 ```
 yarn add @chialab/speaker
-```
-
-### CDN
-
-```js
-import { Speaker } from 'https://unpkg.com/@chialab/speaker?module';
 ```
 
 ---
