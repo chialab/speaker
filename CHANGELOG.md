@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 2.0.3
+
+### Patch Changes
+
+- 3d55884: Support `bundler` module resolution.
+
 ## 2.0.2
 
 ### Patch Changes
