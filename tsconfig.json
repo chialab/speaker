@@ -22,7 +22,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "paths": {
       "@chialab/speaker": ["./src/index.ts"],
     },
