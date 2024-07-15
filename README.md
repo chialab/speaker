@@ -1,10 +1,8 @@
-<p align="center">
-  <strong>Speaker</strong> • A text2speech implementation for HTML documents.
-</p>
+# Speaker
 
-<p align="center">
-    <a href="https://www.npmjs.com/package/@chialab/speaker"><img alt="NPM" src="https://img.shields.io/npm/v/@chialab/speaker.svg"></a>
-</p>
+**A text2speech implementation for HTML documents.**
+
+[![NPM](https://img.shields.io/npm/v/@chialab/speaker.svg)](https://www.npmjs.com/package/@chialab/speaker)
 
 ---
 
@@ -19,6 +17,39 @@ npm i @chialab/speaker
 ```
 yarn add @chialab/speaker
 ```
+
+## Usage
+
+### Initialize
+
+```js
+import { Speaker } from '@chialab/speaker';
+
+const article = document.querySelector('article');
+const speaker = new Speaker(article);
+```
+
+### Playback
+
+```js
+speaker.play();  // Play or resume playback
+speaker.pause(); // Pause
+speaker.stop();  // Stop
+```
+
+### Highlight
+
+Highlight the active sentence and/or word:
+
+```js
+speaker.setupHighlighter({
+    boundaries: true,
+    sentences: true,
+});
+```
+
+> [!WARNING]  
+> The client must support [CSS Highlights API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API) to enable highlighting. ([caniuse.com](https://caniuse.com/mdn-api_highlight))
 
 ---
 
