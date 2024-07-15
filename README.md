@@ -32,9 +32,9 @@ const speaker = new Speaker(article);
 ### Playback
 
 ```js
-speaker.play();  // Play or resume playback
+speaker.play(); // Play or resume playback
 speaker.pause(); // Pause
-speaker.stop();  // Stop
+speaker.stop(); // Stop
 ```
 
 ### Highlight
