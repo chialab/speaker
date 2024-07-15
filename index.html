@@ -85,7 +85,7 @@
                 margin-right: 0.5em;
                 padding: 0;
                 font-family: 'Material Icons', sans-serif;
-                font-size: 2em;
+                font-size: 1.5em;
                 background: transparent;
                 border: 0;
                 border-radius: 50%;
@@ -110,58 +110,12 @@
                 margin-left: 1em;
             }
 
-            .highlighter {
-                position: absolute;
-                top: 0;
-                left: 0;
-                z-index: -1;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                overflow: hidden;
+            ::highlight(speaker-sentences-highlight) {
+                background-color: #ffc800;
             }
 
-            .highlighter-rect,
-            .highlighter-rect-word {
-                box-sizing: content-box;
-                position: absolute;
-                margin-top: -4px;
-                margin-left: -4px;
-                background: #ffc800;
-                border: solid 4px transparent;
-            }
-
-            .highlighter-rect-word {
-                background: #ff9300;
-                border-radius: 10px;
-                transition:
-                    left 150ms,
-                    width 150ms;
-                will-change: left, width;
-            }
-
-            .highlighter-rect:first-child {
-                border-top-left-radius: 10px;
-            }
-
-            .highlighter-rect:first-child:only-child {
-                border-bottom-left-radius: 10px;
-            }
-
-            .highlighter-rect:first-child:not(:only-child) {
-                border-top-right-radius: 10px;
-            }
-
-            .highlighter-rect:last-child {
-                border-bottom-right-radius: 10px;
-            }
-
-            .highlighter-rect:last-child:only-child {
-                border-top-right-radius: 10px;
-            }
-
-            .highlighter-rect:last-child:not(:only-child) {
-                border-bottom-left-radius: 10px;
+            ::highlight(speaker-boundaries-highlight) {
+                background-color: #ff9300;
             }
         </style>
     </head>
@@ -192,18 +146,16 @@
             </select>
         </nav>
         <article id="main">
-            <h1 lang="en-US">The Batman</h1>
+            <h1 lang="it-IT">L'uomo pipistrello</h1>
             <p lang="it-IT">
-                <span lang="en-US">Bruce Wayne</span>, insieme al padre <span lang="en-US">Thomas</span> e alla madre
-                <span lang="en-US">Martha</span>, va al cinema il 26 giugno per vedere
-                <span style="--voice: male">Il segno di Zorro</span>; all'uscita i genitori vengono rapinati da
-                <span lang="en-US">Joe Chill</span> che nell'aggressione li uccide. Il bambino, rimasto traumatizzato,
-                promette un giorno di iniziare a combattere i criminali con lo scopo di rendere la città di
-                <span lang="en-US">Gotham</span> un luogo più sicuro. <span lang="en-US">Bruce</span>, ereditato il
-                patrimonio di famiglia, viene cresciuto dal maggiordomo <span lang="en-US">Alfred Pennyworth</span>
-                e, raggiunta la maturità, gira il mondo apprendendo arti marziali e tecniche investigative dai migliori
-                maestri. Ritornato a casa, un pipistrello irrompe da una finestra della villa dandogli l'idea di
-                realizzare un travestimento ispirato all'animale per spaventare i criminali.
+                Bruce Wayne, insieme al padre Thomas e alla madre Martha, va al cinema il 26 giugno per vedere Il segno
+                di Zorro; all'uscita i genitori vengono rapinati da Joe Chill che nell'aggressione li uccide. Il
+                bambino, rimasto traumatizzato, promette un giorno di iniziare a combattere i criminali con lo scopo di
+                rendere la città di Gotham un luogo più sicuro. Bruce, ereditato il patrimonio di famiglia, viene
+                cresciuto dal maggiordomo Alfred Pennyworth e, raggiunta la maturità, gira il mondo apprendendo arti
+                marziali e tecniche investigative dai migliori maestri. Ritornato a casa, un pipistrello irrompe da una
+                finestra della villa dandogli l'idea di realizzare un travestimento ispirato all'animale per spaventare
+                i criminali.
             </p>
             <cite lang="en-US">
                 Criminals are a superstitious cowardly lot. So my disguise must be able to strike terror into their
@@ -211,23 +163,21 @@
             </cite>
             <p lang="it-IT">
                 Grazie al suo patrimonio mette a punto un sofisticato equipaggiamento dotandosi di prototipi
-                dell'azienda di famiglia, la <span lang="en-US">Wayne Enterprises</span>, con l'aiuto di
-                <span lang="en-US">Lucius Fox</span>, e collaborando con il commissario di polizia
-                <span lang="en-US">James Gordon</span> nella lotta alla malavita. Oltre alla mafia, nei panni di Batman,
-                combatte anche criminali come <span lang="en-US">Joker</span>, l'Enigmista, l'ex procuratore
-                distrettuale <span lang="en-US">Harvey Dent</span> divenuto il criminale Due Facce, il Pinguino,
-                <span lang="en-US">Mister Freeze</span> e molti altri.
+                dell'azienda di famiglia, la Wayne Enterprises, con l'aiuto di Lucius Fox, e collaborando con il
+                commissario di polizia James Gordon nella lotta alla malavita. Oltre alla mafia, nei panni di Batman,
+                combatte anche criminali come Joker, l'Enigmista, l'ex procuratore distrettuale Harvey Dent divenuto il
+                criminale Due Facce, il Pinguino, Mister Freeze e molti altri.
             </p>
             <img
                 lang="it-IT"
-                src="https://s01.diziler.com/img/content/16-08/29/batman-1966-2.jpg"
+                src="https://static.dc.com/dc/files/default_images/1900x900_batphone_53dad248c3b633.19835719.jpg"
                 alt="Foto di Batman, interpretato da Adam West, che usa il bat-telefono" />
-            <footer lang="en-US">
-                Source:
+            <footer lang="it-IT">
+                Fonte:
                 <a
                     href="https://it.wikipedia.org/wiki/Batman#Biografia_del_personaggio"
                     target="_blank"
-                    aria-label="Wikipedia page about Batman"
+                    aria-label="Pagina wikipedia dedicata a Batman"
                     >Wikipedia</a
                 >
             </footer>
@@ -236,7 +186,7 @@
             type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
         <script type="module">
-            import { Speaker } from './dist/esm/speaker.js';
+            import { Speaker } from './src/index';
 
             const readButton = document.querySelector('#all');
             const playButton = document.querySelector('#play');
@@ -247,9 +197,8 @@
             console.log(speaker);
 
             speaker.setupHighlighter({
-                boundaries: {
-                    rectClass: 'highlighter-rect-word',
-                },
+                boundaries: true,
+                sentences: true,
             });
 
             readButton.addEventListener('click', async (event) => {

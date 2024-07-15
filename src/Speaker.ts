@@ -1,6 +1,5 @@
 import { Adapter } from './Adapter';
 import { Emitter, type Event } from './Emitter';
-import { Highlighter, type HighlighterOptions } from './Highlighter';
 import { createRange } from './Range';
 import {
     tokenize,
@@ -37,10 +36,10 @@ export interface SpeakerOptions {
 /**
  * Speaker highlighter options.
  */
-export interface SpeakerHighlighterOptions {
-    boundaries?: boolean | HighlighterOptions;
-    sentences?: boolean | HighlighterOptions;
-    blocks?: boolean | HighlighterOptions;
+export interface HighlighterOptions {
+    boundaries?: boolean;
+    sentences?: boolean;
+    blocks?: boolean;
 }
 
 /**
@@ -372,60 +371,72 @@ export class Speaker extends Emitter<{
      * Create and handle hihglighter for current reading.
      * @param options Highlighter options.
      */
-    setupHighlighter(options: SpeakerHighlighterOptions = {}) {
-        const boundaryHighlighter =
-            options.boundaries !== false
-                ? new Highlighter(
-                      Object.assign({ root: this.#element }, options.boundaries === true ? {} : options.boundaries)
-                  )
-                : null;
+    setupHighlighter(options: HighlighterOptions = {}) {
+        if (typeof Highlight !== 'function' || typeof CSS !== 'object' || typeof CSS.highlights !== 'object') {
+            // eslint-disable-next-line no-console
+            console.warn('Missing support for Highlight API.');
+            return;
+        }
+        const blocksHighlight = options.blocks ? new Highlight() : null;
+        const sentencesHighlight = options.sentences ? new Highlight() : null;
+        const boundariesHighlight = options.boundaries ? new Highlight() : null;
 
-        const sentenceHighlighter =
-            options.sentences !== false
-                ? new Highlighter(
-                      Object.assign({ root: this.#element }, options.sentences === true ? {} : options.sentences)
-                  )
-                : null;
+        if (blocksHighlight) {
+            CSS.highlights.set('speaker-blocks-highlight', blocksHighlight);
+        }
+        if (sentencesHighlight) {
+            CSS.highlights.set('speaker-sentences-highlight', sentencesHighlight);
+        }
+        if (boundariesHighlight) {
+            CSS.highlights.set('speaker-boundaries-highlight', boundariesHighlight);
+        }
 
-        const blockHighlighter = options.blocks
-            ? new Highlighter(Object.assign({ root: this.#element }, options.blocks === true ? {} : options.blocks))
-            : null;
+        this.on('start', () => {
+            boundariesHighlight?.clear();
+            sentencesHighlight?.clear();
+            blocksHighlight?.clear();
+        });
 
         this.on('cancel', () => {
-            boundaryHighlighter?.setRange(null);
-            sentenceHighlighter?.setRange(null);
-            blockHighlighter?.setRange(null);
+            boundariesHighlight?.clear();
+            sentencesHighlight?.clear();
+            blocksHighlight?.clear();
         });
 
         this.on('end', () => {
-            boundaryHighlighter?.setRange(null);
-            sentenceHighlighter?.setRange(null);
-            blockHighlighter?.setRange(null);
+            boundariesHighlight?.clear();
+            sentencesHighlight?.clear();
+            blocksHighlight?.clear();
         });
 
         this.on('error', () => {
-            boundaryHighlighter?.setRange(null);
-            sentenceHighlighter?.setRange(null);
-            blockHighlighter?.setRange(null);
+            boundariesHighlight?.clear();
+            sentencesHighlight?.clear();
+            blocksHighlight?.clear();
         });
 
         let lastBlock: BlockToken | null = null;
         let lastSentence: SentenceToken | null = null;
         this.on('boundary', ({ token, sentence, block }) => {
             if (lastBlock !== block) {
-                blockHighlighter?.setRange(null);
-                sentenceHighlighter?.setRange(null);
-                boundaryHighlighter?.setRange(null);
-                blockHighlighter?.setRange(block ? createRange(...block.tokens) : null);
+                blocksHighlight?.clear();
+                sentencesHighlight?.clear();
+                boundariesHighlight?.clear();
+                if (block) {
+                    blocksHighlight?.add(createRange(...block.tokens));
+                }
                 lastBlock = block;
             }
             if (lastSentence !== sentence) {
-                sentenceHighlighter?.setRange(null);
-                boundaryHighlighter?.setRange(null);
-                sentenceHighlighter?.setRange(sentence ? createRange(...sentence.tokens) : null);
+                sentencesHighlight?.clear();
+                boundariesHighlight?.clear();
+                if (sentence) {
+                    sentencesHighlight?.add(createRange(...sentence.tokens));
+                }
                 lastSentence = sentence;
             }
-            boundaryHighlighter?.setRange(createRange(token));
+            boundariesHighlight?.clear();
+            boundariesHighlight?.add(createRange(token));
         });
     }
 }

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "es2020",
-    "lib": ["es2020", "dom"],
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "sourceMap": true,
     "inlineSources": true,
     "strict": true,
@@ -24,8 +24,8 @@
     "isolatedModules": true,
     "moduleResolution": "bundler",
     "paths": {
-      "@chialab/speaker": ["./src/index.ts"],
-    },
+      "@chialab/speaker": ["./src/index.ts"]
+    }
   },
-  "include": ["src"],
+  "include": ["src"]
 }
