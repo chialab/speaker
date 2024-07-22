@@ -5,6 +5,7 @@
     "@chialab/speaker": "2.0.3"
   },
   "changesets": [
-    "spotty-beers-reply"
+    "spotty-beers-reply",
+    "thin-flowers-chew"
   ]
 }
