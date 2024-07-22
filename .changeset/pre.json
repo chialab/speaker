@@ -4,5 +4,7 @@
   "initialVersions": {
     "@chialab/speaker": "2.0.3"
   },
-  "changesets": []
+  "changesets": [
+    "spotty-beers-reply"
+  ]
 }
