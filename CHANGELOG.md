@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.0-beta.1
+
+### Minor Changes
+
+-   adb1850: Fix tokenization of selected ranges.
+
 ## 3.0.0-beta.0
 
 ### Major Changes
