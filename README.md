@@ -51,6 +51,24 @@ speaker.setupHighlighter({
 > [!WARNING]  
 > The client must support [CSS Highlights API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API) to enable highlighting. ([caniuse.com](https://caniuse.com/mdn-api_highlight))
 
+#### Highlights colors
+
+You can stylize highlighted words, sentences and blocks via CSS:
+
+```css
+::highlight(speaker-blocks-highlight) {
+    background-color: #ffc80080;
+}
+
+::highlight(speaker-sentences-highlight) {
+    background-color: #ffc800;
+}
+
+::highlight(speaker-boundaries-highlight) {
+    background-color: #ff9300;
+}
+```
+
 ---
 
 ## Development
