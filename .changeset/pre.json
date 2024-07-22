@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@chialab/speaker": "2.0.2"
+  },
+  "changesets": [
+    "spotty-beers-reply"
+  ]
+}
