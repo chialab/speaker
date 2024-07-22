@@ -215,7 +215,10 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 }
                 break attributeIterator;
             }
-            if ((isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(`[${attrName}]`)) {
+            const closestElement = (isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(
+                `[${attrName}]`
+            );
+            if (closestElement && element.contains(closestElement)) {
                 continue tokenIterator;
             }
         }
@@ -398,6 +401,24 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 startNode = endNode;
                 startOffset = currentStartOffset = endOffset + match[0].length;
                 continue;
+            }
+
+            if (range && range.startContainer === startNode) {
+                if (endOffset < range.startOffset) {
+                    chunk = '';
+                    startNode = endNode;
+                    startOffset = currentStartOffset = endOffset + match[0].length;
+                    continue;
+                }
+            }
+
+            if (range && range.endContainer === endNode) {
+                if (currentStartOffset > range.endOffset) {
+                    chunk = '';
+                    startNode = endNode;
+                    startOffset = currentStartOffset = endOffset + match[0].length;
+                    continue;
+                }
             }
 
             chunk += currentChunk;
