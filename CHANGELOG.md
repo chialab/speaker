@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.0-beta.4
+
+### Patch Changes
+
+-   8634b82: Fix absolute positioned elements.
+
 ## 3.0.0-beta.3
 
 ### Patch Changes
