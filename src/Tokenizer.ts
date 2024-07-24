@@ -90,12 +90,17 @@ function createCheckFunction(rules?: CheckRule): CheckFunction {
  * @returns True if the element has display block.
  */
 function checkDisplayBlock(element: Element) {
+    const style = getComputedStyle(element);
+    const position = style.position;
     let value;
-    if (element.closest('svg')) {
-        // SVG elements are always computed as blocks.
-        value = (element as HTMLElement).style && (element as HTMLElement).style.display;
-    } else {
-        value = getComputedStyle(element).display;
+    switch (position) {
+        case 'static':
+            value = style.display;
+            break;
+        default:
+            // absolute, fixed, relative, sticky positioned elements are always computed as blocks
+            value = (element as HTMLElement).style && (element as HTMLElement).style.display;
+            break;
     }
     return [
         'block',
