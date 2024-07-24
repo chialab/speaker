@@ -184,10 +184,16 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     // eslint-disable-next-line no-cond-assign
     tokenIterator: while ((currentNode = walker.nextNode())) {
         if (range) {
-            if (range.startContainer.compareDocumentPosition(currentNode) === Node.DOCUMENT_POSITION_PRECEDING) {
+            if (
+                (range.startContainer.compareDocumentPosition(currentNode) & Node.DOCUMENT_POSITION_PRECEDING) ===
+                Node.DOCUMENT_POSITION_PRECEDING
+            ) {
                 continue;
             }
-            if (range.endContainer.compareDocumentPosition(currentNode) === Node.DOCUMENT_POSITION_FOLLOWING) {
+            if (
+                (range.endContainer.compareDocumentPosition(currentNode) & Node.DOCUMENT_POSITION_FOLLOWING) ===
+                Node.DOCUMENT_POSITION_FOLLOWING
+            ) {
                 continue;
             }
         }
