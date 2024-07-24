@@ -5,6 +5,8 @@
     "@chialab/speaker": "2.0.3"
   },
   "changesets": [
+    "early-ducks-shop",
+    "great-snakes-fly",
     "spotty-beers-reply",
     "thin-flowers-chew"
   ]
