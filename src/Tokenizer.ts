@@ -90,6 +90,13 @@ function createCheckFunction(rules?: CheckRule): CheckFunction {
  * @returns True if the element has display block.
  */
 function checkDisplayBlock(element: Element) {
+    let value;
+    if (element.closest('svg')) {
+        // SVG elements are always computed as blocks.
+        value = (element as HTMLElement).style && (element as HTMLElement).style.display;
+    } else {
+        value = getComputedStyle(element).display;
+    }
     return [
         'block',
         'flex',
@@ -103,7 +110,7 @@ function checkDisplayBlock(element: Element) {
         'table-cell',
         'table-column',
         'table-row',
-    ].includes(getComputedStyle(element).display);
+    ].includes(value);
 }
 
 /**
