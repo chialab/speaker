@@ -150,6 +150,7 @@ export interface TokenizerOptions {
     ignore?: CheckRule;
     blocks?: CheckRule;
     altAttributes?: string[];
+    sentenceEndRegexp?: RegExp;
 }
 
 /**
@@ -164,6 +165,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);
     const isBlock = createCheckFunction(options.blocks);
     const range = options.range;
+    const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
@@ -444,7 +446,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             }
             if (collectSentences) {
                 currentSentenceTokens.push(token);
-                if (/[.!?](\s+|$)/.test(chunk)) {
+                if (sentenceEndRegexp.test(chunk)) {
                     yield {
                         type: TokenType.SENTENCE,
                         startNode: currentSentenceTokens[0].startNode,
