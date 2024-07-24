@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.0-beta.3
+
+### Patch Changes
+
+-   8a20d49: Handle inline elements inside SVG.
+
 ## 3.0.0-beta.2
 
 ### Patch Changes
