@@ -1,5 +1,12 @@
 # @chialab/speaker
 
+## 3.0.0-beta.2
+
+### Patch Changes
+
+-   2e08e5f: Correctly check if element is part of a range when it preceeds and contains the range.
+-   311c3fb: Allow custom regexp to check sentence ending.
+
 ## 3.0.0-beta.1
 
 ### Minor Changes
