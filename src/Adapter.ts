@@ -414,14 +414,8 @@ export class Adapter {
      * @param voices A list of available voices.
      * @param requestedLang The requested language.
      * @param requestedVoices The requested voices.
-     * @param preferredGender The preferred gender voice (optional).
      */
-    private getVoice(
-        voices: SpeechSynthesisVoice[],
-        requestedLang: string,
-        requestedVoices: string[],
-        preferredGender?: string
-    ) {
+    private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
         const { preferredVoices, maleVoices, femaleVoices } = this.#options;
 
         requestedLang = requestedLang.toLowerCase().replace('_', '-');

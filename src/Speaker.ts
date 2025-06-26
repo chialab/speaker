@@ -24,6 +24,10 @@ export interface SpeakerOptions {
      */
     lang: string;
     /**
+     * Selectors to ignore elements for the lang attribute.
+     */
+    langIgnore?: string;
+    /**
      * Ignore rules. Can be a selector, a list of selectors or a function.
      */
     ignore?: CheckRule;
@@ -240,6 +244,7 @@ export class Speaker extends Emitter<{
         const tokensIterator = tokenize(this.#element, TokenType.ALL, {
             range: range || undefined,
             ignore: this.#options.ignore,
+            langIgnore: this.#options.langIgnore,
             altAttributes: this.#options.altAttributes,
         });
         for (const token of tokensIterator) {
