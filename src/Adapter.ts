@@ -323,7 +323,7 @@ export class Adapter {
             const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
             const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
             // setup utterance properties
-            const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
+            const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','), utterance.gender);
             if (!voice) {
                 return;
             }
@@ -414,8 +414,14 @@ export class Adapter {
      * @param voices A list of available voices.
      * @param requestedLang The requested language.
      * @param requestedVoices The requested voices.
+     * @param preferredGender The preferred gender voice (optional).
      */
-    private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
+    private getVoice(
+        voices: SpeechSynthesisVoice[],
+        requestedLang: string,
+        requestedVoices: string[],
+        preferredGender?: string
+    ) {
         const { preferredVoices, maleVoices, femaleVoices } = this.#options;
 
         requestedLang = requestedLang.toLowerCase().replace('_', '-');
@@ -458,9 +464,19 @@ export class Adapter {
             }
         }
 
+        let voicesToUse: string[] = [];
+        if (preferredGender === 'male') {
+            voicesToUse = maleVoices;
+        } else if (preferredGender === 'female') {
+            voicesToUse = femaleVoices;
+        } else {
+            voicesToUse = preferredVoices;
+        }
+
         const preferredAvailableVoices = availableVoices.filter((voice) =>
-            preferredVoices.includes(normalizeVoiceName(voice.name))
+            voicesToUse.includes(normalizeVoiceName(voice.name))
         );
+
         if (preferredAvailableVoices.length) {
             return preferredAvailableVoices[0];
         }

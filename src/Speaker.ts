@@ -20,6 +20,10 @@ export interface SpeakerOptions {
      */
     rate: number;
     /**
+     * The preferred gender of the voice.
+     */
+    gender?: string;
+    /**
      * The default language.
      */
     lang: string;
@@ -168,6 +172,7 @@ export class Speaker extends Emitter<{
             rate: 1,
             ignore: '[aria-hidden]',
             altAttributes: ['aria-label', 'aria-labelledby', 'alt', 'data-mathml'],
+            gender: 'female',
             ...options,
             lang: normalizeLanguage(options.lang ?? getLang()),
         };
@@ -265,7 +270,7 @@ export class Speaker extends Emitter<{
                             currentUtterance.lang !== language ||
                             currentUtterance.voices !== voices
                         ) {
-                            currentUtterance = new Utterance(language, voices, this.#rate);
+                            currentUtterance = new Utterance(language, voices, this.#rate, this.#options.gender);
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
                                 this.trigger('boundary', {
@@ -342,6 +347,30 @@ export class Speaker extends Emitter<{
      */
     async setRate(rate: number) {
         this.#rate = rate;
+
+        const active = this.active;
+        const paused = this.paused;
+        const range = this.#range;
+        let cancelPromise = Promise.resolve();
+        if (active) {
+            cancelPromise = this.#adapter.cancel();
+            this.clear();
+        }
+
+        await cancelPromise;
+
+        if (active && !paused) {
+            // restart the playback with the new rate.
+            await this.play(range);
+        }
+    }
+
+    /**
+     * Set lang. Stop and play again if running.
+     * @param lang The lang value to set.
+     */
+    async setLang(lang: string) {
+        this.#lang = lang;
 
         const active = this.active;
         const paused = this.paused;

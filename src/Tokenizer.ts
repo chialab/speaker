@@ -140,7 +140,7 @@ function checkDisplayNone(node: Node) {
 function getNodeLang(node: Node) {
     return (
         (node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement)
-            ?.closest('[lang]')
+            ?.closest('[lang]:not(html)')
             ?.getAttribute('lang') ?? null
     );
 }
