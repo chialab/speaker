@@ -6,7 +6,7 @@
     "sourceMap": true,
     "inlineSources": true,
     "strict": true,
-    "outDir": "node_modules/@chialab/speaker/dist",
+    "outDir": "./dist",
     "declaration": true,
     "declarationDir": "types",
     "emitDeclarationOnly": true,
