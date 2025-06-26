@@ -39,7 +39,6 @@ export class Utterance extends Emitter<{
     #tokens: UtteranceToken[] = [];
     #lang: string;
     #voices: string;
-    #gender?: string;
     #rate: number;
     #text: string = '';
     #started = false;
@@ -52,14 +51,12 @@ export class Utterance extends Emitter<{
      * @param lang The utterance language.
      * @param voices The utterance voices.
      * @param rate The utterance playback rate.
-     * @param gender The utterance preferred gender voice (optional).
      */
-    constructor(lang: string, voices: string, rate: number, gender?: string) {
+    constructor(lang: string, voices: string, rate: number) {
         super();
         this.#lang = lang;
         this.#voices = voices;
         this.#rate = rate;
-        this.#gender = gender;
     }
 
     /**
@@ -81,13 +78,6 @@ export class Utterance extends Emitter<{
      */
     get voices() {
         return this.#voices;
-    }
-
-    /**
-     * Utterance preferred gender.
-     */
-    get gender() {
-        return this.#gender;
     }
 
     /**

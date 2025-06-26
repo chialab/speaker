@@ -135,12 +135,14 @@ function checkDisplayNone(node: Node) {
 /**
  * Get the current node lang.
  * @param node The node.
+ * @param ignoreSelector Selectors for elements to which ignore lang attribute.
  * @returns The language or null.
  */
-function getNodeLang(node: Node) {
+function getNodeLang(node: Node, ignoreSelector?: string) {
+    const selector = ignoreSelector ? `[lang]:not(${ignoreSelector})` : '[lang]';
     return (
         (node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement)
-            ?.closest('[lang]:not(html)')
+            ?.closest(selector)
             ?.getAttribute('lang') ?? null
     );
 }
@@ -162,6 +164,7 @@ export interface TokenizerOptions {
     ignore?: CheckRule;
     blocks?: CheckRule;
     altAttributes?: string[];
+    langIgnore?: string;
     sentenceEndRegexp?: RegExp;
 }
 
@@ -176,6 +179,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     const altAttributes = options.altAttributes ?? ['alt', 'aria-label', 'aria-labelledby'];
     const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);
     const isBlock = createCheckFunction(options.blocks);
+    const langIgnore = options.langIgnore;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
@@ -256,7 +260,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         startOffset,
                         endNode,
                         endOffset: (endNode.textContent || '').length,
-                        lang: getNodeLang(startNode),
+                        lang: getNodeLang(startNode, langIgnore),
                         voice: getNodeVoice(startNode),
                     };
 
@@ -312,7 +316,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         startOffset: range.startOffset,
                         endNode: range.endContainer,
                         endOffset: range.endOffset,
-                        lang: getNodeLang(currentNode),
+                        lang: getNodeLang(currentNode, langIgnore),
                         voice: getNodeVoice(currentNode),
                     };
 
@@ -369,7 +373,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                     startOffset,
                     endNode,
                     endOffset: (endNode.textContent || '').length,
-                    lang: getNodeLang(startNode),
+                    lang: getNodeLang(startNode, langIgnore),
                     voice: getNodeVoice(startNode),
                 };
 
@@ -450,7 +454,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 startOffset,
                 endNode,
                 endOffset,
-                lang: getNodeLang(startNode),
+                lang: getNodeLang(startNode, langIgnore),
                 voice: getNodeVoice(startNode),
             };
             if (collectBoundaries) {
@@ -500,7 +504,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             startOffset,
             endNode,
             endOffset: (endNode.textContent || '').length,
-            lang: getNodeLang(startNode),
+            lang: getNodeLang(startNode, langIgnore),
             voice: getNodeVoice(startNode),
         };
         if (collectBoundaries) {

@@ -161,8 +161,8 @@ const DEFAULT_OPTIONS: SynthesisOptions = {
         'Google polski',
         'Google português do Brasil',
         'Google русский',
-        'Google 普通话（中国大陆）',
-        'Google 粤語（香港）',
+        'Google 普通话（中国大陆）',
+        'Google 粤語（香港）',
         'Google 國語（臺灣）',
         'Alice',
         'Amelie',
@@ -323,7 +323,7 @@ export class Adapter {
             const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
             const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
             // setup utterance properties
-            const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','), utterance.gender);
+            const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
             if (!voice) {
                 return;
             }
@@ -464,17 +464,8 @@ export class Adapter {
             }
         }
 
-        let voicesToUse: string[] = [];
-        if (preferredGender === 'male') {
-            voicesToUse = maleVoices;
-        } else if (preferredGender === 'female') {
-            voicesToUse = femaleVoices;
-        } else {
-            voicesToUse = preferredVoices;
-        }
-
         const preferredAvailableVoices = availableVoices.filter((voice) =>
-            voicesToUse.includes(normalizeVoiceName(voice.name))
+            preferredVoices.includes(normalizeVoiceName(voice.name))
         );
 
         if (preferredAvailableVoices.length) {
