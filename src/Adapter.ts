@@ -1,6 +1,11 @@
 import { Deferred } from './Deferred';
 import type { BoundaryToken } from './Tokenizer';
 import type { Utterance } from './Utterance';
+import { de } from './voices/de';
+import { en } from './voices/en';
+import { es } from './voices/es';
+import { fr } from './voices/fr';
+import { it } from './voices/it';
 
 export function checkSupport() {
     if (
@@ -72,20 +77,6 @@ export function getVoices(timeoutTime: number = 2000) {
     return VOICES_PROMISE;
 }
 
-/**
- * Safari voices names prefix.
- */
-const SAFARI_PREFIX = 'com.apple.speech.synthesis.voice.';
-
-/**
- * Normalize voices names.
- * @param name The browser voice name.
- * @return The normalized value.
- */
-function normalizeVoiceName(name: string) {
-    return name.toLowerCase().replace(SAFARI_PREFIX, '');
-}
-
 let rejectInterval: Function | undefined;
 
 /**
@@ -128,10 +119,6 @@ function awaitTimeout(time = 100) {
 
 export interface SynthesisOptions {
     /**
-     * A list of preferred voice names to use.
-     */
-    preferredVoices: string[];
-    /**
      * A list of female voice names to use.
      */
     femaleVoices: string[];
@@ -145,62 +132,12 @@ export interface SynthesisOptions {
  * Default options for Synthesis adapter.
  */
 const DEFAULT_OPTIONS: SynthesisOptions = {
-    preferredVoices: [
-        'Google Deutsch',
-        'Google US English',
-        'Google UK English Female',
-        'Google español',
-        'Google español de Estados Unidos',
-        'Google français',
-        'Google हिन्दी',
-        'Google Bahasa Indonesia',
-        'Google italiano',
-        'Google 日本語',
-        'Google 한국의',
-        'Google Nederlands',
-        'Google polski',
-        'Google português do Brasil',
-        'Google русский',
-        'Google 普通话（中国大陆）',
-        'Google 粤語（香港）',
-        'Google 國語（臺灣）',
-        'Alice',
-        'Amelie',
-        'Anna',
-        'Ellen',
-        'Fiona',
-        'Joana',
-        'Ioana',
-        'Monica',
-        'Karen',
-        'Luciana',
-        'Laura',
-        'Milena',
-        'Samantha',
-        'Sara',
-    ].map(normalizeVoiceName),
-    femaleVoices: [
-        'Google UK English Female',
-        'Amelie',
-        'Anna',
-        'Ellen',
-        'Fiona',
-        'Ioana',
-        'Joana',
-        'Monica',
-        'Karen',
-        'Luciana',
-        'Laura',
-        'Milena',
-        'Samantha',
-        'Sara',
-        'Tessa',
-        'Victoria',
-        'Zuzana',
-    ].map(normalizeVoiceName),
-    maleVoices: ['Google UK English Male', 'Daniel', 'Diego', 'Fred', 'Jorge', 'Juan', 'Luca', 'Thomas', 'Xander'].map(
-        normalizeVoiceName
-    ),
+    femaleVoices: [...de.voices, ...en.voices, ...es.voices, ...fr.voices, ...it.voices]
+        .filter((v) => v.gender === 'female' && !(v.quality.indexOf('low') !== -1 && v.quality.length === 1))
+        ?.map((voice) => voice.label),
+    maleVoices: [...de.voices, ...en.voices, ...es.voices, ...fr.voices, ...it.voices]
+        .filter((v) => v.gender === 'male' && !(v.quality.indexOf('low') !== -1 && v.quality.length === 1))
+        ?.map((voice) => voice.label),
 };
 
 /**
@@ -416,7 +353,7 @@ export class Adapter {
      * @param requestedVoices The requested voices.
      */
     private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
-        const { preferredVoices, maleVoices, femaleVoices } = this.#options;
+        const { maleVoices, femaleVoices } = this.#options;
 
         requestedLang = requestedLang.toLowerCase().replace('_', '-');
         const availableVoices = voices.filter((voice) => {
@@ -432,24 +369,17 @@ export class Adapter {
         if (requestedVoices.length) {
             const voice = requestedVoices.reduce(
                 (voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
-                    voiceType = normalizeVoiceName(voiceType);
-
                     if (voice) {
                         return voice;
                     }
                     if (voiceType === 'male') {
-                        return (
-                            availableVoices.find((voice) => maleVoices.includes(normalizeVoiceName(voice.name))) || null
-                        );
+                        return availableVoices.find((voice) => maleVoices.includes(voice.name)) || null;
                     }
                     if (voiceType === 'female') {
-                        return (
-                            availableVoices.find((voice) => femaleVoices.includes(normalizeVoiceName(voice.name))) ||
-                            null
-                        );
+                        return availableVoices.find((voice) => femaleVoices.includes(voice.name)) || null;
                     }
 
-                    return availableVoices.find((voice) => normalizeVoiceName(voice.name) === voiceType) || null;
+                    return availableVoices.find((voice) => voice.name === voiceType) || null;
                 },
                 null
             );
@@ -459,7 +389,7 @@ export class Adapter {
         }
 
         const preferredAvailableVoices = availableVoices.filter((voice) =>
-            preferredVoices.includes(normalizeVoiceName(voice.name))
+            [...maleVoices, ...femaleVoices].includes(voice.name)
         );
 
         if (preferredAvailableVoices.length) {
