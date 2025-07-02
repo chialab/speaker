@@ -436,6 +436,11 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 }
             }
 
+            if (range && range.endContainer === endNode && endOffset > range.endOffset) {
+                // Stop processing this node if the next token would exceed the selection range
+                break;
+            }
+
             if (range && range.endContainer === endNode) {
                 if (currentStartOffset > range.endOffset) {
                     chunk = '';
@@ -484,16 +489,45 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             startOffset = currentStartOffset = endOffset + match[0].length;
         }
 
-        chunk += text.substring(currentStartOffset);
-        if (!chunk) {
+        // Append the remaining text from the current position,
+        // but trim it at range.endOffset if we're in the final node of the selection
+        if (range && range.endContainer === endNode) {
+            chunk += text.substring(currentStartOffset, range.endOffset);
+        } else {
+            chunk += text.substring(currentStartOffset);
+        }
+
+        if (chunk && endNode) {
+            // Emit remaining chunk if it's valid and within the selection range
+            startNode = startNode ?? endNode;
+
+            const effectiveEndOffset =
+                range && range.endContainer === endNode ? range.endOffset : (endNode.textContent || '').length;
+
+            if (!(range && range.endContainer === endNode && startOffset >= range.endOffset)) {
+                const token: BoundaryToken = {
+                    type: TokenType.BOUNDARY,
+                    text: chunk,
+                    startNode,
+                    startOffset,
+                    endNode,
+                    endOffset: effectiveEndOffset,
+                    lang: getNodeLang(startNode, langIgnore),
+                    voice: getNodeVoice(startNode),
+                };
+
+                if (collectBoundaries) yield token;
+                if (collectSentences) currentSentenceTokens.push(token);
+                if (collectBlocks) currentBlockTokens.push(token);
+            }
+
             chunk = '';
             startNode = null;
             startOffset = 0;
-        } else {
-            startNode = startNode ?? endNode;
         }
     }
 
+    // Emit final chunk at the end of the selection or document
     if (chunk && endNode) {
         startNode = startNode ?? endNode;
 
