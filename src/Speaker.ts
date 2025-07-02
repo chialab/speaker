@@ -352,16 +352,6 @@ export class Speaker extends Emitter<{
     }
 
     /**
-     * Set lang. Stop and play again if running.
-     * @param lang The lang value to set.
-     */
-    async setLang(lang: string) {
-        this.#lang = lang;
-
-        this.restart();
-    }
-
-    /**
      *  Stop and play again if speaking is active.
      */
     async restart() {
