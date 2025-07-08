@@ -12,10 +12,14 @@ export default defineConfig({
             provider: 'istanbul',
         },
         browser: {
-            name: 'chromium',
             enabled: true,
             headless: true,
             provider: 'playwright',
+            instances: [
+                {
+                    browser: 'chromium',
+                },
+            ],
         },
     },
 });

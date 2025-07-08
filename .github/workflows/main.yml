@@ -97,6 +97,12 @@ jobs:
       - name: Install project dependencies
         run: yarn install
 
+      - name: Run build script
+        run: yarn build
+
+      - name: Lint package
+        run: yarn publint --pack npm
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
