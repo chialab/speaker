@@ -341,16 +341,16 @@ export class Adapter {
             }
         }
 
-        if (requestedVoiceType) {
-            const shortLang = normalizedLang.split('-')[0];
-            if (shortLang in voicesLoader) {
-                const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => a.quality - b.quality);
-                const voice = availableVoices.find((voice) =>
-                    knownVoices.some((v) => v.name === voice.name && v.type === requestedVoiceType)
-                );
-                if (voice) {
-                    return voice;
-                }
+        const shortLang = normalizedLang.split('-')[0];
+        if (shortLang in voicesLoader) {
+            const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => a.quality - b.quality);
+            const voice = availableVoices.find((voice) =>
+                knownVoices.some(
+                    (v) => v.name === voice.name && (requestedVoiceType ? v.type === requestedVoiceType : true)
+                )
+            );
+            if (voice) {
+                return voice;
             }
         }
 
