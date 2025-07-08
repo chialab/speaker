@@ -40,8 +40,8 @@ export class Utterance extends Emitter<{
     #lang: string;
     #voiceType: string | null;
     #voices: string | null;
-    #rate: number;
-    #text: string = '';
+    #rate = 1;
+    #text = '';
     #started = false;
     #ended = false;
     #current: BoundaryToken | null = null;

@@ -2,12 +2,12 @@ import { Adapter } from './Adapter';
 import { Emitter, type Event } from './Emitter';
 import { createRange } from './Range';
 import {
-    tokenize,
-    TokenType,
     type BlockToken,
     type BoundaryToken,
     type CheckRule,
     type SentenceToken,
+    TokenType,
+    tokenize,
 } from './Tokenizer';
 import { Utterance } from './Utterance';
 
@@ -304,7 +304,7 @@ export class Speaker extends Emitter<{
 
                         try {
                             await dfd.promise();
-                        } catch (err) {
+                        } catch {
                             this.clear();
                             await this.trigger('cancel');
                             return;

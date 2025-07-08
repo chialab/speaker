@@ -44,7 +44,7 @@ let VOICES_PROMISE: Promise<SpeechSynthesisVoice[]>;
  * @param timeoutTime Timeout time in milliseconds.
  * @returns A promise that resolves voices.
  */
-export function getVoices(timeoutTime: number = 2000): Promise<SpeechSynthesisVoice[]> {
+export function getVoices(timeoutTime = 2000): Promise<SpeechSynthesisVoice[]> {
     if (!VOICES_PROMISE) {
         VOICES_PROMISE = new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
@@ -73,7 +73,7 @@ export function getVoices(timeoutTime: number = 2000): Promise<SpeechSynthesisVo
     return VOICES_PROMISE;
 }
 
-let rejectInterval: Function | undefined;
+let rejectInterval: (() => void) | undefined;
 
 /**
  * SpeechSynthesis API are not deterministic.
@@ -214,9 +214,11 @@ export class Adapter {
 
         this.#cancelable = true;
 
-        const deferred = (this.#playbackDeferred = new Deferred());
+        const deferred = new Deferred();
+        this.#playbackDeferred = deferred;
         const voices = await getVoices();
-        const queue = (this.#queue = utterances || []);
+        const queue = utterances || [];
+        this.#queue = queue;
         for (const utterance of queue) {
             const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
             const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
@@ -263,7 +265,6 @@ export class Adapter {
      * @param utterance The started utterance.
      * @param queue The list of uttereances queued.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async onUtteranceStart(utterance: Utterance, queue: Utterance[]) {
         this.#current = utterance;
         await utterance.start();
@@ -322,11 +323,11 @@ export class Adapter {
         requestedVoiceType?: string | null,
         requestedVoices?: string[] | null
     ) {
-        requestedLang = requestedLang.toLowerCase().replace('_', '-');
+        const normalizedLang = requestedLang.toLowerCase().replace('_', '-');
         const availableVoices = voices.filter((voice) => {
             const voiceLang = voice.lang.toLowerCase().replace('_', '-');
             const shortVoiceLang = voiceLang.split('-')[0];
-            return voiceLang === requestedLang || shortVoiceLang === requestedLang;
+            return voiceLang === normalizedLang || shortVoiceLang === normalizedLang;
         });
 
         if (!availableVoices.length) {
@@ -341,7 +342,7 @@ export class Adapter {
         }
 
         if (requestedVoiceType) {
-            const shortLang = requestedLang.split('-')[0];
+            const shortLang = normalizedLang.split('-')[0];
             if (shortLang in voicesLoader) {
                 const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => a.quality - b.quality);
                 const voice = availableVoices.find((voice) =>

@@ -40,7 +40,7 @@ for await (const jsonFile of jsonFiles) {
             '',
             `const data: Voice[] = ${JSON.stringify(voices, null, 4)};`,
             '',
-            `export default data;`,
+            'export default data;',
         ].join('\n')
     );
 }

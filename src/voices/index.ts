@@ -1,5 +1,4 @@
 import type { Voice } from '../Voice';
-
 export const ar: () => Promise<Voice[]> = () => import('./ar').then((m) => m.default);
 export const bg: () => Promise<Voice[]> = () => import('./bg').then((m) => m.default);
 export const bho: () => Promise<Voice[]> = () => import('./bho').then((m) => m.default);

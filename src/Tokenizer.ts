@@ -95,14 +95,14 @@ function createCheckFunction(rules?: CheckRule): CheckFunction {
 function checkDisplayBlock(element: Element) {
     const style = getComputedStyle(element);
     const position = style.position;
-    let value;
+    let value: string | undefined;
     switch (position) {
         case 'static':
             value = style.display;
             break;
         default:
             // absolute, fixed, relative, sticky positioned elements are always computed as blocks
-            value = (element as HTMLElement).style && (element as HTMLElement).style.display;
+            value = (element as HTMLElement).style?.display;
             break;
     }
     return [
@@ -257,7 +257,7 @@ export function* tokenize(
         const isElement = currentNode.nodeType === Node.ELEMENT_NODE;
 
         let textValue = '';
-        attributeIterator: for (let i = 0; i < altAttributes.length; i++) {
+        for (let i = 0; i < altAttributes.length; i++) {
             const attrName = altAttributes[i];
             if (isElement && (currentNode as Element).hasAttribute(attrName)) {
                 if (attrName === 'aria-labelledby') {
@@ -271,7 +271,7 @@ export function* tokenize(
                 } else {
                     textValue = (currentNode as Element).getAttribute(attrName) || '';
                 }
-                break attributeIterator;
+                break;
             }
             const closestElement = (isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(
                 `[${attrName}]`
@@ -452,7 +452,7 @@ export function* tokenize(
         endNode = currentNode as Text;
         let currentStartOffset = 0;
         const regex = /\s+/g;
-        let match;
+        let match: RegExpExecArray | null = null;
         // eslint-disable-next-line no-cond-assign
         while ((match = regex.exec(text))) {
             startNode = startNode ?? endNode;
