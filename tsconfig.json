@@ -17,11 +17,11 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "skipLibCheck": true,
-    "allowJs": true,
-    "checkJs": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
+    "isolatedDeclarations": true,
+    "erasableSyntaxOnly": true,
     "moduleResolution": "bundler",
     "paths": {
       "@chialab/speaker": ["./src/index.ts"]

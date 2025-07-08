@@ -1,4 +1,4 @@
-import { tokenize, TokenType } from '@chialab/speaker';
+import { TokenType, tokenize } from '@chialab/speaker';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 describe('tokenizer', () => {

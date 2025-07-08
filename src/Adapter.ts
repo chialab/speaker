@@ -1,8 +1,9 @@
 import { Deferred } from './Deferred';
 import type { BoundaryToken } from './Tokenizer';
 import type { Utterance } from './Utterance';
+import * as voicesLoader from './voices/index';
 
-export function checkSupport() {
+export function checkSupport(): boolean {
     if (
         typeof window !== 'undefined' &&
         typeof window.speechSynthesis !== 'undefined' &&
@@ -14,7 +15,7 @@ export function checkSupport() {
     return false;
 }
 
-export function getSpeechSynthesis() {
+export function getSpeechSynthesis(): SpeechSynthesis {
     /* global window */
     if (checkSupport()) {
         return window.speechSynthesis;
@@ -23,7 +24,7 @@ export function getSpeechSynthesis() {
     throw new Error('missing support for SpeechSynthesis');
 }
 
-export function getSpeechSynthesisUtterance() {
+export function getSpeechSynthesisUtterance(): typeof SpeechSynthesisUtterance {
     /* global window */
     if (checkSupport()) {
         return window.SpeechSynthesisUtterance;
@@ -36,14 +37,14 @@ export function getSpeechSynthesisUtterance() {
  * Speech synthesis voices loader is async in Chrome.
  * Promisify it.
  */
-let VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>>;
+let VOICES_PROMISE: Promise<SpeechSynthesisVoice[]>;
 
 /**
  * Get speech synthesis voices.
  * @param timeoutTime Timeout time in milliseconds.
  * @returns A promise that resolves voices.
  */
-export function getVoices(timeoutTime: number = 2000) {
+export function getVoices(timeoutTime = 2000): Promise<SpeechSynthesisVoice[]> {
     if (!VOICES_PROMISE) {
         VOICES_PROMISE = new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
@@ -72,21 +73,7 @@ export function getVoices(timeoutTime: number = 2000) {
     return VOICES_PROMISE;
 }
 
-/**
- * Safari voices names prefix.
- */
-const SAFARI_PREFIX = 'com.apple.speech.synthesis.voice.';
-
-/**
- * Normalize voices names.
- * @param name The browser voice name.
- * @return The normalized value.
- */
-function normalizeVoiceName(name: string) {
-    return name.toLowerCase().replace(SAFARI_PREFIX, '');
-}
-
-let rejectInterval: Function | undefined;
+let rejectInterval: (() => void) | undefined;
 
 /**
  * SpeechSynthesis API are not deterministic.
@@ -126,88 +113,10 @@ function awaitTimeout(time = 100) {
     });
 }
 
-export interface SynthesisOptions {
-    /**
-     * A list of preferred voice names to use.
-     */
-    preferredVoices: string[];
-    /**
-     * A list of female voice names to use.
-     */
-    femaleVoices: string[];
-    /**
-     * A list of male voice names to use.
-     */
-    maleVoices: string[];
-}
-
-/**
- * Default options for Synthesis adapter.
- */
-const DEFAULT_OPTIONS: SynthesisOptions = {
-    preferredVoices: [
-        'Google Deutsch',
-        'Google US English',
-        'Google UK English Female',
-        'Google español',
-        'Google español de Estados Unidos',
-        'Google français',
-        'Google हिन्दी',
-        'Google Bahasa Indonesia',
-        'Google italiano',
-        'Google 日本語',
-        'Google 한국의',
-        'Google Nederlands',
-        'Google polski',
-        'Google português do Brasil',
-        'Google русский',
-        'Google 普通话（中国大陆）',
-        'Google 粤語（香港）',
-        'Google 國語（臺灣）',
-        'Alice',
-        'Amelie',
-        'Anna',
-        'Ellen',
-        'Fiona',
-        'Joana',
-        'Ioana',
-        'Monica',
-        'Karen',
-        'Luciana',
-        'Laura',
-        'Milena',
-        'Samantha',
-        'Sara',
-    ].map(normalizeVoiceName),
-    femaleVoices: [
-        'Google UK English Female',
-        'Amelie',
-        'Anna',
-        'Ellen',
-        'Fiona',
-        'Ioana',
-        'Joana',
-        'Monica',
-        'Karen',
-        'Luciana',
-        'Laura',
-        'Milena',
-        'Samantha',
-        'Sara',
-        'Tessa',
-        'Victoria',
-        'Zuzana',
-    ].map(normalizeVoiceName),
-    maleVoices: ['Google UK English Male', 'Daniel', 'Diego', 'Fred', 'Jorge', 'Juan', 'Luca', 'Thomas', 'Xander'].map(
-        normalizeVoiceName
-    ),
-};
-
 /**
  * A Text2Speech adapter which uses native browser SpeechSynthesis.
  */
 export class Adapter {
-    #options: SynthesisOptions;
     #queue: Utterance[] | null = null;
     #utterances: Map<Utterance, SpeechSynthesisUtterance> = new Map();
     #playbackDeferred: Deferred | null = null;
@@ -215,27 +124,16 @@ export class Adapter {
     #cancelable = false;
 
     /**
-     * Create an instance of the Synthesis adapter.
-     * @param options A set of options for Synthesis.
-     */
-    constructor(options: Partial<SynthesisOptions> = {}) {
-        this.#options = {
-            ...DEFAULT_OPTIONS,
-            ...options,
-        };
-    }
-
-    /**
      * Flag for active speech.
      */
-    get active() {
+    get active(): boolean {
         return !!this.#playbackDeferred;
     }
 
     /**
      * Get the pause state of the adapter.
      */
-    get paused() {
+    get paused(): boolean {
         return getSpeechSynthesis().paused;
     }
 
@@ -267,7 +165,7 @@ export class Adapter {
     /**
      * Pause the current speaking.
      */
-    async pause() {
+    async pause(): Promise<void> {
         const speechSynthesis = getSpeechSynthesis();
         speechSynthesis.pause();
         await awaitState(() => speechSynthesis.paused);
@@ -316,16 +214,23 @@ export class Adapter {
 
         this.#cancelable = true;
 
-        const deferred = (this.#playbackDeferred = new Deferred());
+        const deferred = new Deferred();
+        this.#playbackDeferred = deferred;
         const voices = await getVoices();
-        const queue = (this.#queue = utterances || []);
-        queue.forEach((utterance) => {
+        const queue = utterances || [];
+        this.#queue = queue;
+        for (const utterance of queue) {
             const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
             const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
             // setup utterance properties
-            const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
+            const voice = await this.getVoice(
+                voices,
+                utterance.lang,
+                utterance.voiceType,
+                utterance.voices?.split(',')
+            );
             if (!voice) {
-                return;
+                continue;
             }
 
             speechUtterance.voice = voice;
@@ -338,9 +243,7 @@ export class Adapter {
                 this.onUtteranceBoundary(utterance, event.charIndex);
             speechUtterance.onend = () => this.onUtteranceEnd(utterance, queue);
             this.#utterances.set(utterance, speechUtterance);
-
-            return speechUtterance;
-        });
+        }
 
         if (!queue.length) {
             deferred.resolve();
@@ -362,7 +265,6 @@ export class Adapter {
      * @param utterance The started utterance.
      * @param queue The list of uttereances queued.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async onUtteranceStart(utterance: Utterance, queue: Utterance[]) {
         this.#current = utterance;
         await utterance.start();
@@ -415,54 +317,45 @@ export class Adapter {
      * @param requestedLang The requested language.
      * @param requestedVoices The requested voices.
      */
-    private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
-        const { preferredVoices, maleVoices, femaleVoices } = this.#options;
-
-        requestedLang = requestedLang.toLowerCase().replace('_', '-');
+    private async getVoice(
+        voices: SpeechSynthesisVoice[],
+        requestedLang: string,
+        requestedVoiceType?: string | null,
+        requestedVoices?: string[] | null
+    ) {
+        const normalizedLang = requestedLang.toLowerCase().replace('_', '-');
         const availableVoices = voices.filter((voice) => {
             const voiceLang = voice.lang.toLowerCase().replace('_', '-');
             const shortVoiceLang = voiceLang.split('-')[0];
-            return voiceLang === requestedLang || shortVoiceLang === requestedLang;
+            return voiceLang === normalizedLang || shortVoiceLang === normalizedLang;
         });
 
         if (!availableVoices.length) {
             return null;
         }
 
-        if (requestedVoices.length) {
-            const voice = requestedVoices.reduce(
-                (voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
-                    voiceType = normalizeVoiceName(voiceType);
-
-                    if (voice) {
-                        return voice;
-                    }
-                    if (voiceType === 'male') {
-                        return (
-                            availableVoices.find((voice) => maleVoices.includes(normalizeVoiceName(voice.name))) || null
-                        );
-                    }
-                    if (voiceType === 'female') {
-                        return (
-                            availableVoices.find((voice) => femaleVoices.includes(normalizeVoiceName(voice.name))) ||
-                            null
-                        );
-                    }
-
-                    return availableVoices.find((voice) => normalizeVoiceName(voice.name) === voiceType) || null;
-                },
-                null
-            );
+        if (requestedVoices?.length) {
+            const voice = availableVoices.find((voice) => requestedVoices.includes(voice.name));
             if (voice) {
                 return voice;
             }
         }
 
-        const preferredAvailableVoices = availableVoices.filter((voice) =>
-            preferredVoices.includes(normalizeVoiceName(voice.name))
-        );
-        if (preferredAvailableVoices.length) {
-            return preferredAvailableVoices[0];
+        const shortLang = normalizedLang.split('-')[0];
+        if (shortLang in voicesLoader) {
+            const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => b.quality - a.quality);
+            const knownVoice =
+                knownVoices.find(
+                    (v) =>
+                        (requestedVoiceType ? v.type === requestedVoiceType : true) &&
+                        availableVoices.some((voice) => voice.name === v.name)
+                ) ||
+                (requestedVoiceType
+                    ? knownVoices.find((v) => availableVoices.some((voice) => voice.name === v.name))
+                    : undefined);
+            if (knownVoice) {
+                return availableVoices.find((voice) => voice.name === knownVoice.name);
+            }
         }
 
         return availableVoices[0];
@@ -472,7 +365,7 @@ export class Adapter {
      * Check if a token can be spoken by the adapter.
      * @param token The token to check.
      */
-    canSpeech(token: BoundaryToken) {
+    canSpeech(token: BoundaryToken): boolean {
         return !token.startNode.parentElement?.closest('math, [data-mathml]');
     }
 }

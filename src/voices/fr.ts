@@ -1,0 +1,198 @@
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
+    {
+        'name': 'Microsoft VivienneMultilingual Online (Natural) - French (France)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Denise Online (Natural) - French (France)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Charline Online (Natural) - French (Belgium)',
+        'lang': 'fr-BE',
+        'type': 'female',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Ariane Online (Natural) - French (Switzerland)',
+        'lang': 'fr-CH',
+        'type': 'female',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Eloise Online (Natural) - French (France)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft RemyMultilingual Online (Natural) - French (France)',
+        'lang': 'fr-FR',
+        'type': 'male',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Henri Online (Natural) - French (France)',
+        'lang': 'fr-FR',
+        'type': 'male',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Gerard Online (Natural) - French (Belgium)',
+        'lang': 'fr-BE',
+        'type': 'male',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Fabrice Online (Natural) - French (Switzerland)',
+        'lang': 'fr-CH',
+        'type': 'male',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Sylvie Online (Natural) - French (Canada)',
+        'lang': 'fr-CA',
+        'type': 'female',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Antoine Online (Natural) - French (Canada)',
+        'lang': 'fr-CA',
+        'type': 'male',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Jean Online (Natural) - French (Canada)',
+        'lang': 'fr-CA',
+        'type': 'male',
+        'quality': 4,
+    },
+    {
+        'name': 'Microsoft Thierry Online (Natural) - French (Canada)',
+        'lang': 'fr-CA',
+        'type': 'male',
+        'quality': 4,
+    },
+    {
+        'name': 'Marie',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 1,
+    },
+    {
+        'name': 'Thomas',
+        'lang': 'fr-FR',
+        'type': 'male',
+        'quality': 2,
+    },
+    {
+        'name': 'Amélie',
+        'lang': 'fr-CA',
+        'type': 'female',
+        'quality': 3,
+    },
+    {
+        'name': 'Google français',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 3,
+    },
+    {
+        'name': 'Microsoft Julie - French (France)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 2,
+    },
+    {
+        'name': 'Microsoft Hortence - French (France)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 2,
+    },
+    {
+        'name': 'Microsoft Paul - French (France)',
+        'lang': 'fr-FR',
+        'type': 'male',
+        'quality': 2,
+    },
+    {
+        'name': 'Microsoft Caroline - French (Canada)',
+        'lang': 'fr-CA',
+        'type': 'female',
+        'quality': 2,
+    },
+    {
+        'name': 'Microsoft Claude - French (Canada)',
+        'lang': 'fr-CA',
+        'type': 'male',
+        'quality': 2,
+    },
+    {
+        'name': 'Microsoft Claude - French (Switzerland)',
+        'lang': 'fr-CH',
+        'type': 'male',
+        'quality': 2,
+    },
+    {
+        'name': 'Google français 4 (Natural)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 3,
+    },
+    {
+        'name': 'Google français 2 (Natural)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 3,
+    },
+    {
+        'name': 'Google français 1 (Natural)',
+        'lang': 'fr-FR',
+        'type': 'female',
+        'quality': 3,
+    },
+    {
+        'name': 'Google français 5 (Natural)',
+        'lang': 'fr-FR',
+        'type': 'male',
+        'quality': 3,
+    },
+    {
+        'name': 'Google français 3 (Natural)',
+        'lang': 'fr-FR',
+        'type': 'male',
+        'quality': 3,
+    },
+    {
+        'name': 'Android Speech Recognition and Synthesis from Google fr-ca-x-caa-network',
+        'lang': 'fr-CA',
+        'type': 'female',
+        'quality': 3,
+    },
+    {
+        'name': 'Android Speech Recognition and Synthesis from Google fr-ca-x-cac-network',
+        'lang': 'fr-CA',
+        'type': 'female',
+        'quality': 3,
+    },
+    {
+        'name': 'Android Speech Recognition and Synthesis from Google fr-ca-x-cab-network',
+        'lang': 'fr-CA',
+        'type': 'male',
+        'quality': 3,
+    },
+    {
+        'name': 'Android Speech Recognition and Synthesis from Google fr-ca-x-cad-network',
+        'lang': 'fr-CA',
+        'type': 'male',
+        'quality': 3,
+    },
+];
+
+export default data;

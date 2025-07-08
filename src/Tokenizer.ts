@@ -1,12 +1,14 @@
 /**
  * Token types.
  */
-export enum TokenType {
-    BOUNDARY = 1,
-    SENTENCE = 2,
-    BLOCK = 4,
-    ALL = 7,
-}
+export const TokenType = {
+    BOUNDARY: 1,
+    SENTENCE: 2,
+    BLOCK: 4,
+    ALL: 7,
+} as const;
+
+export type TokenType = (typeof TokenType)[keyof typeof TokenType];
 
 /**
  * The base token interface.
@@ -25,6 +27,7 @@ export interface TextToken extends Token {
     text: string;
     lang: string | null;
     voice: string | null;
+    voiceType: string | null;
 }
 
 /**
@@ -38,21 +41,21 @@ export interface GroupToken<T extends Token> extends Token {
  * Boundary token interface.
  */
 export interface BoundaryToken extends TextToken {
-    type: TokenType.BOUNDARY;
+    type: 1;
 }
 
 /**
  * Sentence token interface.
  */
 export interface SentenceToken extends GroupToken<BoundaryToken> {
-    type: TokenType.SENTENCE;
+    type: 2;
 }
 
 /**
  * Block token interface.
  */
 export interface BlockToken extends GroupToken<BoundaryToken> {
-    type: TokenType.BLOCK;
+    type: 4;
 }
 
 export type CheckFunction = (node: Node) => boolean;
@@ -92,14 +95,14 @@ function createCheckFunction(rules?: CheckRule): CheckFunction {
 function checkDisplayBlock(element: Element) {
     const style = getComputedStyle(element);
     const position = style.position;
-    let value;
+    let value: string | undefined;
     switch (position) {
         case 'static':
             value = style.display;
             break;
         default:
             // absolute, fixed, relative, sticky positioned elements are always computed as blocks
-            value = (element as HTMLElement).style && (element as HTMLElement).style.display;
+            value = (element as HTMLElement).style?.display;
             break;
     }
     return [
@@ -135,14 +138,34 @@ function checkDisplayNone(node: Node) {
 /**
  * Get the current node lang.
  * @param node The node.
+ * @param root The root element of the document to speak.
  * @returns The language or null.
  */
-function getNodeLang(node: Node) {
-    return (
-        (node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement)
-            ?.closest('[lang]')
-            ?.getAttribute('lang') ?? null
-    );
+function getNodeLang(node: Node, root?: string | Element) {
+    const selector = '[lang]';
+    const parentElement = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
+    if (!parentElement) {
+        return null;
+    }
+
+    let rootElement =
+        root == null
+            ? parentElement.ownerDocument.documentElement
+            : typeof root === 'string'
+              ? parentElement.closest(root)
+              : root;
+    if (!rootElement) {
+        // eslint-disable-next-line no-console
+        console.warn('Root element not found, using document element as root.');
+        rootElement = parentElement.ownerDocument.documentElement;
+    }
+
+    const langElement = parentElement.closest(selector);
+    if (!langElement || !rootElement.contains(langElement)) {
+        return null;
+    }
+
+    return langElement.getAttribute('lang') ?? null;
 }
 
 /**
@@ -155,6 +178,15 @@ function getNodeVoice(node: Node) {
 }
 
 /**
+ * Get the current text node voice type.
+ * @param node The text node.
+ * @returns The voice name or null.
+ */
+function getNodeVoiceType(node: Node) {
+    return node.parentElement ? getComputedStyle(node.parentElement).getPropertyValue('--voice-type') || null : null;
+}
+
+/**
  * Tokenizer options.
  */
 export interface TokenizerOptions {
@@ -162,6 +194,7 @@ export interface TokenizerOptions {
     ignore?: CheckRule;
     blocks?: CheckRule;
     altAttributes?: string[];
+    root?: string | Element;
     sentenceEndRegexp?: RegExp;
 }
 
@@ -171,11 +204,16 @@ export interface TokenizerOptions {
  * @param whatToShow A unsigned long representing a bitmask created by combining the constant properties of TokenType.
  * @param options A list of configurations for the tokenizer.
  */
-export function* tokenize(element: Element, whatToShow = TokenType.ALL, options: TokenizerOptions = {}) {
+export function* tokenize(
+    element: Element,
+    whatToShow: TokenType = TokenType.ALL,
+    options: TokenizerOptions = {}
+): Generator<SentenceToken | BlockToken | BoundaryToken, void, unknown> {
     const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
     const altAttributes = options.altAttributes ?? ['alt', 'aria-label', 'aria-labelledby'];
     const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);
     const isBlock = createCheckFunction(options.blocks);
+    const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
@@ -219,7 +257,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
         const isElement = currentNode.nodeType === Node.ELEMENT_NODE;
 
         let textValue = '';
-        attributeIterator: for (let i = 0; i < altAttributes.length; i++) {
+        for (let i = 0; i < altAttributes.length; i++) {
             const attrName = altAttributes[i];
             if (isElement && (currentNode as Element).hasAttribute(attrName)) {
                 if (attrName === 'aria-labelledby') {
@@ -233,7 +271,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 } else {
                     textValue = (currentNode as Element).getAttribute(attrName) || '';
                 }
-                break attributeIterator;
+                break;
             }
             const closestElement = (isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(
                 `[${attrName}]`
@@ -256,7 +294,8 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         startOffset,
                         endNode,
                         endOffset: (endNode.textContent || '').length,
-                        lang: getNodeLang(startNode),
+                        lang: getNodeLang(startNode, root),
+                        voiceType: getNodeVoiceType(startNode),
                         voice: getNodeVoice(startNode),
                     };
 
@@ -312,7 +351,8 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         startOffset: range.startOffset,
                         endNode: range.endContainer,
                         endOffset: range.endOffset,
-                        lang: getNodeLang(currentNode),
+                        lang: getNodeLang(currentNode, root),
+                        voiceType: getNodeVoiceType(currentNode),
                         voice: getNodeVoice(currentNode),
                     };
 
@@ -369,7 +409,8 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                     startOffset,
                     endNode,
                     endOffset: (endNode.textContent || '').length,
-                    lang: getNodeLang(startNode),
+                    lang: getNodeLang(startNode, root),
+                    voiceType: getNodeVoiceType(startNode),
                     voice: getNodeVoice(startNode),
                 };
 
@@ -411,7 +452,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
         endNode = currentNode as Text;
         let currentStartOffset = 0;
         const regex = /\s+/g;
-        let match;
+        let match: RegExpExecArray | null = null;
         // eslint-disable-next-line no-cond-assign
         while ((match = regex.exec(text))) {
             startNode = startNode ?? endNode;
@@ -450,7 +491,8 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 startOffset,
                 endNode,
                 endOffset,
-                lang: getNodeLang(startNode),
+                lang: getNodeLang(startNode, root),
+                voiceType: getNodeVoiceType(startNode),
                 voice: getNodeVoice(startNode),
             };
             if (collectBoundaries) {
@@ -500,7 +542,8 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             startOffset,
             endNode,
             endOffset: (endNode.textContent || '').length,
-            lang: getNodeLang(startNode),
+            lang: getNodeLang(startNode, root),
+            voiceType: getNodeVoiceType(startNode),
             voice: getNodeVoice(startNode),
         };
         if (collectBoundaries) {

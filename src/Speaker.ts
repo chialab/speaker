@@ -2,12 +2,12 @@ import { Adapter } from './Adapter';
 import { Emitter, type Event } from './Emitter';
 import { createRange } from './Range';
 import {
-    tokenize,
-    TokenType,
     type BlockToken,
     type BoundaryToken,
     type CheckRule,
     type SentenceToken,
+    TokenType,
+    tokenize,
 } from './Tokenizer';
 import { Utterance } from './Utterance';
 
@@ -23,6 +23,10 @@ export interface SpeakerOptions {
      * The default language.
      */
     lang: string;
+    /**
+     * The root element of the document to speak.
+     */
+    root?: string | Element;
     /**
      * Ignore rules. Can be a selector, a list of selectors or a function.
      */
@@ -146,11 +150,11 @@ export class Speaker extends Emitter<{
     #options: SpeakerOptions;
     #range: Range | null = null;
 
-    get rate() {
+    get rate(): number {
         return this.#rate;
     }
 
-    get lang() {
+    get lang(): string {
         return this.#lang;
     }
 
@@ -178,21 +182,21 @@ export class Speaker extends Emitter<{
     /**
      * Flag for active speech.
      */
-    get active() {
+    get active(): boolean {
         return this.#adapter.active;
     }
 
     /**
      * Flag for paused speech.
      */
-    get paused() {
+    get paused(): boolean {
         return this.#adapter.paused;
     }
 
     /**
      * Cancel the current speech.
      */
-    async cancel() {
+    async cancel(): Promise<void> {
         if (!this.active) {
             throw 'missing active speech';
         }
@@ -209,7 +213,7 @@ export class Speaker extends Emitter<{
      * Start or resume a speech.
      * @param range A selection range of tokens to speech.
      */
-    async play(range?: Range | null) {
+    async play(range?: Range | null): Promise<void> {
         if (this.active && !range) {
             if (!this.paused) {
                 return;
@@ -240,6 +244,7 @@ export class Speaker extends Emitter<{
         const tokensIterator = tokenize(this.#element, TokenType.ALL, {
             range: range || undefined,
             ignore: this.#options.ignore,
+            root: this.#options.root,
             altAttributes: this.#options.altAttributes,
         });
         for (const token of tokensIterator) {
@@ -258,14 +263,14 @@ export class Speaker extends Emitter<{
                         }
 
                         const language = normalizeLanguage(childToken.lang ?? this.#lang);
-                        const voices = normalizeVoices(childToken.voice || '');
+                        const voices = normalizeVoices(childToken.voice || '') || null;
 
                         if (
                             !currentUtterance ||
                             currentUtterance.lang !== language ||
                             currentUtterance.voices !== voices
                         ) {
-                            currentUtterance = new Utterance(language, voices, this.#rate);
+                            currentUtterance = new Utterance(this.#rate, language, childToken.voiceType, voices);
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
                                 this.trigger('boundary', {
@@ -299,7 +304,7 @@ export class Speaker extends Emitter<{
 
                         try {
                             await dfd.promise();
-                        } catch (err) {
+                        } catch {
                             this.clear();
                             await this.trigger('cancel');
                             return;
@@ -324,7 +329,7 @@ export class Speaker extends Emitter<{
     /**
      * Pause a speech.
      */
-    async pause() {
+    async pause(): Promise<void> {
         if (!this.active) {
             throw 'missing active speech';
         }
@@ -340,9 +345,16 @@ export class Speaker extends Emitter<{
      * Set rate. Stop and play again if running.
      * @param rate The rate value to set.
      */
-    async setRate(rate: number) {
+    async setRate(rate: number): Promise<void> {
         this.#rate = rate;
 
+        this.restart();
+    }
+
+    /**
+     *  Stop and play again if speaking is active.
+     */
+    async restart(): Promise<void> {
         const active = this.active;
         const paused = this.paused;
         const range = this.#range;
@@ -371,7 +383,7 @@ export class Speaker extends Emitter<{
      * Create and handle hihglighter for current reading.
      * @param options Highlighter options.
      */
-    setupHighlighter(options: HighlighterOptions = {}) {
+    setupHighlighter(options: HighlighterOptions = {}): void {
         if (typeof Highlight !== 'function' || typeof CSS !== 'object' || typeof CSS.highlights !== 'object') {
             // eslint-disable-next-line no-console
             console.warn('Missing support for Highlight API.');

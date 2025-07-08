@@ -18,6 +18,10 @@ npm i @chialab/speaker
 yarn add @chialab/speaker
 ```
 
+```
+pnpm add @chialab/speaker
+```
+
 ## Usage
 
 ### Initialize

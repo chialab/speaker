@@ -9,14 +9,14 @@ export interface Event {
  * Base emitter class.
  */
 export class Emitter<EventsMap extends Record<string, Event>> {
-    #listeners = {} as Record<keyof EventsMap, Function[]>;
+    #listeners = {} as Record<keyof EventsMap, ((data: unknown) => unknown)[]>;
 
     /**
      * Add event listener.
      * @param type Event type name.
      * @param listener Callback function.
      */
-    on<T extends keyof EventsMap>(type: T, listener: (data: EventsMap[T]['data']) => unknown) {
+    on<T extends keyof EventsMap>(type: T, listener: (data: EventsMap[T]['data']) => unknown): void {
         this.#listeners[type] = this.#listeners[type] || [];
         this.#listeners[type].push(listener);
     }
@@ -26,7 +26,7 @@ export class Emitter<EventsMap extends Record<string, Event>> {
      * @param type Event type name.
      * @param listener Callback function.
      */
-    off<T extends keyof EventsMap>(type: T, listener: Function) {
+    off<T extends keyof EventsMap>(type: T, listener: (data: EventsMap[T]['data']) => unknown): void {
         const listeners = this.#listeners[type];
         if (!listeners) {
             return;
@@ -45,7 +45,7 @@ export class Emitter<EventsMap extends Record<string, Event>> {
      * @param type Event type name.
      * @param data Data to pass.
      */
-    trigger<T extends keyof EventsMap>(type: T, data?: EventsMap[T]['data']) {
+    trigger<T extends keyof EventsMap>(type: T, data?: EventsMap[T]['data']): unknown {
         const listeners = this.#listeners[type];
         if (!listeners) {
             return;
@@ -61,7 +61,7 @@ export class Emitter<EventsMap extends Record<string, Event>> {
                 return result.then(() => callback.call(this, data));
             }
 
-            return (result = callback.call(this, data));
+            return callback.call(this, data);
         }, undefined);
     }
 }

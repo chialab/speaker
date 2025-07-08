@@ -22,7 +22,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chialab/speaker"
+    "url": "git+https://github.com/chialab/speaker.git"
   },
   "bugs": {
     "url": "https://github.com/chialab/speaker/issues"
@@ -30,28 +30,26 @@
   "homepage": "https://www.chialab.io/p/speaker",
   "author": "Chialab <dev@chialab.io> (https://www.chialab.it)",
   "scripts": {
-    "dev": "vite",
-    "build": "rimraf 'dist' 'type' && tsc && esbuild src/index.ts --outfile=dist/speaker.js --format=esm --bundle --packages=external --sourcemap",
-    "types": "tsc",
+    "prepare": "node scripts/prepare.js && biome check --fix src/voices/",
+    "dev": "yarn prepare && vite",
+    "build": "rimraf 'dist' 'type' && yarn prepare && tsc && esbuild speaker=src/index.ts --outdir=dist --format=esm --splitting --bundle --packages=external --sourcemap",
     "test": "vitest run",
-    "lint": "prettier --check . && eslint src test",
-    "prepack": "yarn build && publint"
+    "lint": "biome check ."
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
     "@changesets/cli": "^2.23.0",
-    "@chialab/eslint-config": "^4.0.0",
-    "@chialab/prettier-config": "^1.2.2",
-    "@types/node": "^20.11.10",
-    "@vitest/browser": "^1.2.2",
-    "@vitest/coverage-istanbul": "^1.2.2",
-    "esbuild": "^0.23.0",
-    "eslint": "^8.0.0",
+    "@types/node": "^22.0.0",
+    "@vitest/browser": "^3.0.0",
+    "@vitest/coverage-istanbul": "^3.0.0",
+    "esbuild": "^0.25.0",
     "playwright": "^1.41.1",
-    "prettier": "^3.2.4",
-    "publint": "^0.2.7",
+    "publint": "^0.3.0",
     "rimraf": "^5.0.2",
     "typescript": "^5.0.0",
-    "vite": "^5.2.11",
-    "vitest": "^1.2.2"
-  }
+    "vite": "^7.0.0",
+    "vitest": "^3.0.0",
+    "web-speech-recommended-voices": "github:HadrienGardeur/web-speech-recommended-voices"
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
