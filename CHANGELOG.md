@@ -1,56 +1,62 @@
 # @chialab/speaker
 
+## 3.0.0-beta.5
+
+### Patch Changes
+
+- 86895b6: Support voice quality and type.
+
 ## 3.0.0-beta.4
 
 ### Patch Changes
 
--   8634b82: Fix absolute positioned elements.
+- 8634b82: Fix absolute positioned elements.
 
 ## 3.0.0-beta.3
 
 ### Patch Changes
 
--   8a20d49: Handle inline elements inside SVG.
+- 8a20d49: Handle inline elements inside SVG.
 
 ## 3.0.0-beta.2
 
 ### Patch Changes
 
--   2e08e5f: Correctly check if element is part of a range when it preceeds and contains the range.
--   311c3fb: Allow custom regexp to check sentence ending.
+- 2e08e5f: Correctly check if element is part of a range when it preceeds and contains the range.
+- 311c3fb: Allow custom regexp to check sentence ending.
 
 ## 3.0.0-beta.1
 
 ### Minor Changes
 
--   adb1850: Fix tokenization of selected ranges.
+- adb1850: Fix tokenization of selected ranges.
 
 ## 3.0.0-beta.0
 
 ### Major Changes
 
--   e242595: Use CSS highlights.
+- e242595: Use CSS highlights.
 
 ## 2.0.3
 
 ### Patch Changes
 
--   3d55884: Support `bundler` module resolution.
+- 3d55884: Support `bundler` module resolution.
 
 ## 2.0.2
 
 ### Patch Changes
 
--   7a8a6a3: Stabilize utterance state
+- 7a8a6a3: Stabilize utterance state
 
 ## 2.0.1
 
 ### Patch Changes
 
--   0ab04c0: Fixed a problem with speechSynthesis state.
+- 0ab04c0: Fixed a problem with speechSynthesis state.
 
 ## 2.0.0
 
 ### Major Changes
 
--   61ca9e3: Use a more performant builtin tokenizer for text2speech.
+- 61ca9e3: Use a more performant builtin tokenizer for text2speech.
