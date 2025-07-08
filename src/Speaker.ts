@@ -263,14 +263,14 @@ export class Speaker extends Emitter<{
                         }
 
                         const language = normalizeLanguage(childToken.lang ?? this.#lang);
-                        const voices = normalizeVoices(childToken.voice || '');
+                        const voices = normalizeVoices(childToken.voice || '') || null;
 
                         if (
                             !currentUtterance ||
                             currentUtterance.lang !== language ||
                             currentUtterance.voices !== voices
                         ) {
-                            currentUtterance = new Utterance(language, voices, this.#rate);
+                            currentUtterance = new Utterance(this.#rate, language, childToken.voiceType, voices);
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
                                 this.trigger('boundary', {

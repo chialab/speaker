@@ -5041,6 +5041,10 @@ vitest@^1.2.2:
     vite-node "1.6.0"
     why-is-node-running "^2.2.2"
 
+"web-speech-recommended-voices@github:HadrienGardeur/web-speech-recommended-voices":
+  version "0.0.0"
+  resolved "https://codeload.github.com/HadrienGardeur/web-speech-recommended-voices/tar.gz/57e7a3417e6632d6d057a24a652d84715c44a038"
+
 which-boxed-primitive@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/which-boxed-primitive/-/which-boxed-primitive-1.0.2.tgz#13757bc89b209b049fe5d86430e21cf40a89a8e6"

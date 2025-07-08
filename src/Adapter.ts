@@ -1,11 +1,7 @@
 import { Deferred } from './Deferred';
 import type { BoundaryToken } from './Tokenizer';
 import type { Utterance } from './Utterance';
-import { de } from './voices/de';
-import { en } from './voices/en';
-import { es } from './voices/es';
-import { fr } from './voices/fr';
-import { it } from './voices/it';
+import * as voicesLoader from './voices/index';
 
 export function checkSupport() {
     if (
@@ -117,50 +113,15 @@ function awaitTimeout(time = 100) {
     });
 }
 
-export interface SynthesisOptions {
-    /**
-     * A list of female voice names to use.
-     */
-    femaleVoices: string[];
-    /**
-     * A list of male voice names to use.
-     */
-    maleVoices: string[];
-}
-
-/**
- * Default options for Synthesis adapter.
- */
-const DEFAULT_OPTIONS: SynthesisOptions = {
-    femaleVoices: [...de.voices, ...en.voices, ...es.voices, ...fr.voices, ...it.voices]
-        .filter((v) => v.gender === 'female' && !(v.quality.indexOf('low') !== -1 && v.quality.length === 1))
-        ?.map((voice) => voice.label),
-    maleVoices: [...de.voices, ...en.voices, ...es.voices, ...fr.voices, ...it.voices]
-        .filter((v) => v.gender === 'male' && !(v.quality.indexOf('low') !== -1 && v.quality.length === 1))
-        ?.map((voice) => voice.label),
-};
-
 /**
  * A Text2Speech adapter which uses native browser SpeechSynthesis.
  */
 export class Adapter {
-    #options: SynthesisOptions;
     #queue: Utterance[] | null = null;
     #utterances: Map<Utterance, SpeechSynthesisUtterance> = new Map();
     #playbackDeferred: Deferred | null = null;
     #current: Utterance | null = null;
     #cancelable = false;
-
-    /**
-     * Create an instance of the Synthesis adapter.
-     * @param options A set of options for Synthesis.
-     */
-    constructor(options: Partial<SynthesisOptions> = {}) {
-        this.#options = {
-            ...DEFAULT_OPTIONS,
-            ...options,
-        };
-    }
 
     /**
      * Flag for active speech.
@@ -256,13 +217,18 @@ export class Adapter {
         const deferred = (this.#playbackDeferred = new Deferred());
         const voices = await getVoices();
         const queue = (this.#queue = utterances || []);
-        queue.forEach((utterance) => {
+        for (const utterance of queue) {
             const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
             const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
             // setup utterance properties
-            const voice = this.getVoice(voices, utterance.lang, utterance.voices.split(','));
+            const voice = await this.getVoice(
+                voices,
+                utterance.lang,
+                utterance.voiceType,
+                utterance.voices?.split(',')
+            );
             if (!voice) {
-                return;
+                continue;
             }
 
             speechUtterance.voice = voice;
@@ -275,9 +241,7 @@ export class Adapter {
                 this.onUtteranceBoundary(utterance, event.charIndex);
             speechUtterance.onend = () => this.onUtteranceEnd(utterance, queue);
             this.#utterances.set(utterance, speechUtterance);
-
-            return speechUtterance;
-        });
+        }
 
         if (!queue.length) {
             deferred.resolve();
@@ -352,9 +316,12 @@ export class Adapter {
      * @param requestedLang The requested language.
      * @param requestedVoices The requested voices.
      */
-    private getVoice(voices: SpeechSynthesisVoice[], requestedLang: string, requestedVoices: string[]) {
-        const { maleVoices, femaleVoices } = this.#options;
-
+    private async getVoice(
+        voices: SpeechSynthesisVoice[],
+        requestedLang: string,
+        requestedVoiceType?: string | null,
+        requestedVoices?: string[] | null
+    ) {
         requestedLang = requestedLang.toLowerCase().replace('_', '-');
         const availableVoices = voices.filter((voice) => {
             const voiceLang = voice.lang.toLowerCase().replace('_', '-');
@@ -366,34 +333,27 @@ export class Adapter {
             return null;
         }
 
-        if (requestedVoices.length) {
-            const voice = requestedVoices.reduce(
-                (voice: SpeechSynthesisVoice | null, voiceType: string): SpeechSynthesisVoice | null => {
-                    if (voice) {
-                        return voice;
-                    }
-                    if (voiceType === 'male') {
-                        return availableVoices.find((voice) => maleVoices.includes(voice.name)) || null;
-                    }
-                    if (voiceType === 'female') {
-                        return availableVoices.find((voice) => femaleVoices.includes(voice.name)) || null;
-                    }
-
-                    return availableVoices.find((voice) => voice.name === voiceType) || null;
-                },
-                null
-            );
+        if (requestedVoices?.length) {
+            const voice = availableVoices.find((voice) => requestedVoices.includes(voice.name));
             if (voice) {
                 return voice;
             }
         }
 
-        const preferredAvailableVoices = availableVoices.filter((voice) =>
-            [...maleVoices, ...femaleVoices].includes(voice.name)
-        );
+        if (requestedVoiceType) {
+            const shortLang = requestedLang.split('-')[0];
+            if (shortLang in voicesLoader) {
+                const knownVoices = (await voicesLoader[shortLang as 'en']()).default.sort(
+                    (a, b) => a.quality - b.quality
+                );
 
-        if (preferredAvailableVoices.length) {
-            return preferredAvailableVoices[0];
+                const voice = availableVoices.find((voice) =>
+                    knownVoices.some((v) => v.name === voice.name && v.type === requestedVoiceType)
+                );
+                if (voice) {
+                    return voice;
+                }
+            }
         }
 
         return availableVoices[0];

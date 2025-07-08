@@ -25,6 +25,7 @@ export interface TextToken extends Token {
     text: string;
     lang: string | null;
     voice: string | null;
+    voiceType: string | null;
 }
 
 /**
@@ -175,6 +176,15 @@ function getNodeVoice(node: Node) {
 }
 
 /**
+ * Get the current text node voice type.
+ * @param node The text node.
+ * @returns The voice name or null.
+ */
+function getNodeVoiceType(node: Node) {
+    return node.parentElement ? getComputedStyle(node.parentElement).getPropertyValue('--voice-type') || null : null;
+}
+
+/**
  * Tokenizer options.
  */
 export interface TokenizerOptions {
@@ -279,6 +289,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         endNode,
                         endOffset: (endNode.textContent || '').length,
                         lang: getNodeLang(startNode, root),
+                        voiceType: getNodeVoiceType(startNode),
                         voice: getNodeVoice(startNode),
                     };
 
@@ -335,6 +346,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         endNode: range.endContainer,
                         endOffset: range.endOffset,
                         lang: getNodeLang(currentNode, root),
+                        voiceType: getNodeVoiceType(currentNode),
                         voice: getNodeVoice(currentNode),
                     };
 
@@ -392,6 +404,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                     endNode,
                     endOffset: (endNode.textContent || '').length,
                     lang: getNodeLang(startNode, root),
+                    voiceType: getNodeVoiceType(startNode),
                     voice: getNodeVoice(startNode),
                 };
 
@@ -473,6 +486,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 endNode,
                 endOffset,
                 lang: getNodeLang(startNode, root),
+                voiceType: getNodeVoiceType(startNode),
                 voice: getNodeVoice(startNode),
             };
             if (collectBoundaries) {
@@ -523,6 +537,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             endNode,
             endOffset: (endNode.textContent || '').length,
             lang: getNodeLang(startNode, root),
+            voiceType: getNodeVoiceType(startNode),
             voice: getNodeVoice(startNode),
         };
         if (collectBoundaries) {
