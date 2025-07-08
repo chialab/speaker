@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Vlasta Online (Natural) - Czech (Czech)',
         lang: 'cs-CZ',
@@ -30,3 +32,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

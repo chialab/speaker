@@ -33,10 +33,20 @@ for await (const jsonFile of jsonFiles) {
         }));
 
     languages.push(data.language);
-    await writeFile(join(voicesPath, `${data.language}.ts`), `export default ${JSON.stringify(voices, null, 4)}\n`);
+    await writeFile(
+        join(voicesPath, `${data.language}.ts`),
+        [
+            "import type { Voice } from '../Voice';",
+            '',
+            `const data: Voice[] = ${JSON.stringify(voices, null, 4)};`,
+            '',
+            `export default data;`,
+        ].join('\n')
+    );
 }
 
-await writeFile(
-    join(voicesPath, 'index.ts'),
-    `${languages.map((lang) => `export const ${lang} = () => import('./${lang}');`).join('\n')}\n`
-);
+await writeFile(join(voicesPath, 'index.ts'), [
+    "import type { Voice } from '../Voice';",
+    '',
+    `${languages.map((lang) => `export const ${lang}: () => Promise<Voice[]> = () => import('./${lang}').then((m) => m.default);`).join('\n')}`,
+]);

@@ -3,7 +3,7 @@ import type { BoundaryToken } from './Tokenizer';
 import type { Utterance } from './Utterance';
 import * as voicesLoader from './voices/index';
 
-export function checkSupport() {
+export function checkSupport(): boolean {
     if (
         typeof window !== 'undefined' &&
         typeof window.speechSynthesis !== 'undefined' &&
@@ -15,7 +15,7 @@ export function checkSupport() {
     return false;
 }
 
-export function getSpeechSynthesis() {
+export function getSpeechSynthesis(): SpeechSynthesis {
     /* global window */
     if (checkSupport()) {
         return window.speechSynthesis;
@@ -24,7 +24,7 @@ export function getSpeechSynthesis() {
     throw new Error('missing support for SpeechSynthesis');
 }
 
-export function getSpeechSynthesisUtterance() {
+export function getSpeechSynthesisUtterance(): typeof SpeechSynthesisUtterance {
     /* global window */
     if (checkSupport()) {
         return window.SpeechSynthesisUtterance;
@@ -37,14 +37,14 @@ export function getSpeechSynthesisUtterance() {
  * Speech synthesis voices loader is async in Chrome.
  * Promisify it.
  */
-let VOICES_PROMISE: Promise<Array<SpeechSynthesisVoice>>;
+let VOICES_PROMISE: Promise<SpeechSynthesisVoice[]>;
 
 /**
  * Get speech synthesis voices.
  * @param timeoutTime Timeout time in milliseconds.
  * @returns A promise that resolves voices.
  */
-export function getVoices(timeoutTime: number = 2000) {
+export function getVoices(timeoutTime: number = 2000): Promise<SpeechSynthesisVoice[]> {
     if (!VOICES_PROMISE) {
         VOICES_PROMISE = new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
@@ -126,14 +126,14 @@ export class Adapter {
     /**
      * Flag for active speech.
      */
-    get active() {
+    get active(): boolean {
         return !!this.#playbackDeferred;
     }
 
     /**
      * Get the pause state of the adapter.
      */
-    get paused() {
+    get paused(): boolean {
         return getSpeechSynthesis().paused;
     }
 
@@ -165,7 +165,7 @@ export class Adapter {
     /**
      * Pause the current speaking.
      */
-    async pause() {
+    async pause(): Promise<void> {
         const speechSynthesis = getSpeechSynthesis();
         speechSynthesis.pause();
         await awaitState(() => speechSynthesis.paused);
@@ -343,10 +343,7 @@ export class Adapter {
         if (requestedVoiceType) {
             const shortLang = requestedLang.split('-')[0];
             if (shortLang in voicesLoader) {
-                const knownVoices = (await voicesLoader[shortLang as 'en']()).default.sort(
-                    (a, b) => a.quality - b.quality
-                );
-
+                const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => a.quality - b.quality);
                 const voice = availableVoices.find((voice) =>
                     knownVoices.some((v) => v.name === voice.name && v.type === requestedVoiceType)
                 );
@@ -363,7 +360,7 @@ export class Adapter {
      * Check if a token can be spoken by the adapter.
      * @param token The token to check.
      */
-    canSpeech(token: BoundaryToken) {
+    canSpeech(token: BoundaryToken): boolean {
         return !token.startNode.parentElement?.closest('math, [data-mathml]');
     }
 }

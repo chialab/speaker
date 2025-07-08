@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft VivienneMultilingual Online (Natural) - French (France)',
         lang: 'fr-FR',
@@ -192,3 +194,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

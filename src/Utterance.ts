@@ -65,56 +65,56 @@ export class Utterance extends Emitter<{
     /**
      * Utterance tokens list length.
      */
-    get length() {
+    get length(): number {
         return this.#tokens.length;
     }
 
     /**
      * Utterance lang.
      */
-    get lang() {
+    get lang(): string {
         return this.#lang;
     }
 
     /**
      * Utterance voice type.
      */
-    get voiceType() {
+    get voiceType(): string | null {
         return this.#voiceType;
     }
 
     /**
      * Utterance voices.
      */
-    get voices() {
+    get voices(): string | null {
         return this.#voices;
     }
 
     /**
      * Utterance rate.
      */
-    get rate() {
+    get rate(): number {
         return this.#rate;
     }
 
     /**
      * Utterance started state.
      */
-    get started() {
+    get started(): boolean {
         return this.#started;
     }
 
     /**
      * Utterance ended state.
      */
-    get ended() {
+    get ended(): boolean {
         return this.#ended;
     }
 
     /**
      * The corrent boundary.
      */
-    get current() {
+    get current(): BoundaryToken | null {
         return this.#current;
     }
 
@@ -122,7 +122,7 @@ export class Utterance extends Emitter<{
      * Add token to utterance.
      * @param token The token to add.
      */
-    addToken(token: BoundaryToken) {
+    addToken(token: BoundaryToken): void {
         const index = this.#text ? this.#text.length + 1 : this.#text.length;
         const text = token.text.trim();
 
@@ -141,7 +141,7 @@ export class Utterance extends Emitter<{
     /**
      * Retrieve the tokens list.
      */
-    getTokens() {
+    getTokens(): BoundaryToken[] {
         return this.#tokens.map((token) => token.token);
     }
 
@@ -149,21 +149,21 @@ export class Utterance extends Emitter<{
      * Get computed text.
      * @returns Computed text string.
      */
-    getText() {
+    getText(): string {
         return this.#text;
     }
 
     /**
      * Get the first token of the utterance.
      */
-    getFirstToken() {
+    getFirstToken(): BoundaryToken | null {
         return this.#tokens[0]?.token ?? null;
     }
 
     /**
      * Get the last token of the utterance.
      */
-    getLastToken() {
+    getLastToken(): BoundaryToken | null {
         return this.#tokens[this.#tokens.length - 1]?.token ?? null;
     }
 
@@ -171,7 +171,7 @@ export class Utterance extends Emitter<{
      * Get the token at the given character index.
      * @return The found token at the given position.
      */
-    getToken(charIndex: number) {
+    getToken(charIndex: number): BoundaryToken | null {
         return (
             this.#tokens.find(({ startOffset, endOffset }) => charIndex >= startOffset && charIndex <= endOffset)
                 ?.token ?? null
@@ -181,7 +181,7 @@ export class Utterance extends Emitter<{
     /**
      * Flags the utterance as started.
      */
-    async start() {
+    async start(): Promise<unknown> {
         this.#started = true;
         return this.trigger('start');
     }
@@ -189,7 +189,7 @@ export class Utterance extends Emitter<{
     /**
      * Trigger a token boundary during the speaking.
      */
-    async boundary(token: BoundaryToken) {
+    async boundary(token: BoundaryToken): Promise<unknown> {
         this.#current = token;
         return this.trigger('boundary', token);
     }
@@ -197,7 +197,7 @@ export class Utterance extends Emitter<{
     /**
      * Flags the utterance as ended.
      */
-    async end() {
+    async end(): Promise<unknown> {
         this.#current = null;
         this.#started = false;
         this.#ended = true;

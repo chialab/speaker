@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Pallavi Online (Natural) - Tamil (India)',
         lang: 'ta-IN',
@@ -72,3 +74,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft HoaiMy Online (Natural) - Vietnamese (Vietnam)',
         lang: 'vi-VN',
@@ -54,3 +56,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

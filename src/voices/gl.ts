@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Sabela Online (Natural) - Galician',
         lang: 'gl-ES',
@@ -12,3 +14,5 @@ export default [
         quality: 4,
     },
 ];
+
+export default data;

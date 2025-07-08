@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Jaya',
         lang: 'bho-IN',
@@ -6,3 +8,5 @@ export default [
         quality: 2,
     },
 ];
+
+export default data;

@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Amina Online (Natural) - Arabic (Algeria)',
         lang: 'ar-DZ',
@@ -234,3 +236,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

@@ -1,12 +1,14 @@
 /**
  * Token types.
  */
-export enum TokenType {
-    BOUNDARY = 1,
-    SENTENCE = 2,
-    BLOCK = 4,
-    ALL = 7,
-}
+export const TokenType = {
+    BOUNDARY: 1,
+    SENTENCE: 2,
+    BLOCK: 4,
+    ALL: 7,
+} as const;
+
+export type TokenType = (typeof TokenType)[keyof typeof TokenType];
 
 /**
  * The base token interface.
@@ -39,21 +41,21 @@ export interface GroupToken<T extends Token> extends Token {
  * Boundary token interface.
  */
 export interface BoundaryToken extends TextToken {
-    type: TokenType.BOUNDARY;
+    type: 1;
 }
 
 /**
  * Sentence token interface.
  */
 export interface SentenceToken extends GroupToken<BoundaryToken> {
-    type: TokenType.SENTENCE;
+    type: 2;
 }
 
 /**
  * Block token interface.
  */
 export interface BlockToken extends GroupToken<BoundaryToken> {
-    type: TokenType.BLOCK;
+    type: 4;
 }
 
 export type CheckFunction = (node: Node) => boolean;
@@ -202,7 +204,11 @@ export interface TokenizerOptions {
  * @param whatToShow A unsigned long representing a bitmask created by combining the constant properties of TokenType.
  * @param options A list of configurations for the tokenizer.
  */
-export function* tokenize(element: Element, whatToShow = TokenType.ALL, options: TokenizerOptions = {}) {
+export function* tokenize(
+    element: Element,
+    whatToShow: TokenType = TokenType.ALL,
+    options: TokenizerOptions = {}
+): Generator<SentenceToken | BlockToken | BoundaryToken, void, unknown> {
     const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
     const altAttributes = options.altAttributes ?? ['alt', 'aria-label', 'aria-labelledby'];
     const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);

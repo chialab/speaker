@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Emel Online (Natural) - Turkish (Turkey)',
         lang: 'tr-TR',
@@ -54,3 +56,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

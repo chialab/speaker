@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft HiuGaai Online (Natural) - Chinese (Cantonese Traditional)',
         lang: 'yue-HK',
@@ -78,3 +80,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

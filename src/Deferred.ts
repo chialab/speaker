@@ -14,7 +14,7 @@ export class Deferred<T = void> {
      * Get the promise instance.
      * @returns A Promise instance.
      */
-    promise() {
+    promise(): Promise<T> {
         return this.#promise;
     }
 
@@ -22,7 +22,7 @@ export class Deferred<T = void> {
      * Resolve the promise.
      * @param value The resolution value of the promise.
      */
-    resolve(value: T) {
+    resolve(value: T): void {
         this.#resolve(value);
     }
 
@@ -30,7 +30,7 @@ export class Deferred<T = void> {
      * Reject the promise.
      * @param reason The error causing the rejection.
      */
-    reject(reason: Error) {
+    reject(reason: Error): void {
         this.#reject(reason);
     }
 }

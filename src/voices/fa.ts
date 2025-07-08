@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Dilara Online (Natural) - Persian (Iran)',
         lang: 'fa-IR',
@@ -18,3 +20,5 @@ export default [
         quality: 2,
     },
 ];
+
+export default data;

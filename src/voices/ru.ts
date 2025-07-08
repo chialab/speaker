@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Svetlana Online (Natural) - Russian (Russia)',
         lang: 'ru-RU',
@@ -72,3 +74,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

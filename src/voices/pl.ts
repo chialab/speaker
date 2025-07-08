@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Zofia Online (Natural) - Polish (Poland)',
         lang: 'pl-PL',
@@ -72,3 +74,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

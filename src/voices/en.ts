@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft EmmaMultilingual Online (Natural) - English (United States)',
         lang: 'en-US',
@@ -570,3 +572,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

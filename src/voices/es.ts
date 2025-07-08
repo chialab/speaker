@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Elvira Online (Natural) - Spanish (Spain)',
         lang: 'es-ES',
@@ -378,3 +380,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

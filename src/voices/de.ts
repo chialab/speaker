@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft SeraphinaMultilingual Online (Natural) - German (Germany)',
         lang: 'de-DE',
@@ -138,3 +140,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

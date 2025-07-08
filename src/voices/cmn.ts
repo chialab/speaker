@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Xiaoxiao Online (Natural) - Chinese (Mainland)',
         lang: 'cmn-CN',
@@ -180,3 +182,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

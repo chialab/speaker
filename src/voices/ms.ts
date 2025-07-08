@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Yasmin Online (Natural) - Malay (Malaysia)',
         lang: 'ms-MY',
@@ -48,3 +50,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;

@@ -1,4 +1,6 @@
-export default [
+import type { Voice } from '../Voice';
+
+const data: Voice[] = [
     {
         name: 'Microsoft Tanishaa Online (Natural) - Bengali (India)',
         lang: 'bn-IN',
@@ -60,3 +62,5 @@ export default [
         quality: 3,
     },
 ];
+
+export default data;
