@@ -343,14 +343,14 @@ export class Adapter {
 
         const shortLang = normalizedLang.split('-')[0];
         if (shortLang in voicesLoader) {
-            const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => a.quality - b.quality);
-            const voice = availableVoices.find((voice) =>
-                knownVoices.some(
-                    (v) => v.name === voice.name && (requestedVoiceType ? v.type === requestedVoiceType : true)
-                )
+            const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => b.quality - a.quality);
+            const knownVoice = knownVoices.find(
+                (v) =>
+                    (requestedVoiceType ? v.type === requestedVoiceType : true) &&
+                    availableVoices.some((voice) => voice.name === v.name)
             );
-            if (voice) {
-                return voice;
+            if (knownVoice) {
+                return availableVoices.find((voice) => voice.name === knownVoice.name);
             }
         }
 
