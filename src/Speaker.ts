@@ -24,9 +24,9 @@ export interface SpeakerOptions {
      */
     lang: string;
     /**
-     * Selectors to ignore elements for the lang attribute.
+     * The root element of the document to speak.
      */
-    langIgnore?: string;
+    root?: string | Element;
     /**
      * Ignore rules. Can be a selector, a list of selectors or a function.
      */
@@ -244,7 +244,7 @@ export class Speaker extends Emitter<{
         const tokensIterator = tokenize(this.#element, TokenType.ALL, {
             range: range || undefined,
             ignore: this.#options.ignore,
-            langIgnore: this.#options.langIgnore,
+            root: this.#options.root,
             altAttributes: this.#options.altAttributes,
         });
         for (const token of tokensIterator) {

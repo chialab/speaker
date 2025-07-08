@@ -135,16 +135,34 @@ function checkDisplayNone(node: Node) {
 /**
  * Get the current node lang.
  * @param node The node.
- * @param ignoreSelector Selectors for elements to which ignore lang attribute.
+ * @param root The root element of the document to speak.
  * @returns The language or null.
  */
-function getNodeLang(node: Node, ignoreSelector?: string) {
-    const selector = ignoreSelector ? `[lang]:not(${ignoreSelector})` : '[lang]';
-    return (
-        (node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement)
-            ?.closest(selector)
-            ?.getAttribute('lang') ?? null
-    );
+function getNodeLang(node: Node, root?: string | Element) {
+    const selector = '[lang]';
+    const parentElement = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
+    if (!parentElement) {
+        return null;
+    }
+
+    let rootElement =
+        root == null
+            ? parentElement.ownerDocument.documentElement
+            : typeof root === 'string'
+              ? parentElement.closest(root)
+              : root;
+    if (!rootElement) {
+        // eslint-disable-next-line no-console
+        console.warn('Root element not found, using document element as root.');
+        rootElement = parentElement.ownerDocument.documentElement;
+    }
+
+    const langElement = parentElement.closest(selector);
+    if (!langElement || !rootElement.contains(langElement)) {
+        return null;
+    }
+
+    return langElement.getAttribute('lang') ?? null;
 }
 
 /**
@@ -164,7 +182,7 @@ export interface TokenizerOptions {
     ignore?: CheckRule;
     blocks?: CheckRule;
     altAttributes?: string[];
-    langIgnore?: string;
+    root?: string | Element;
     sentenceEndRegexp?: RegExp;
 }
 
@@ -179,7 +197,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
     const altAttributes = options.altAttributes ?? ['alt', 'aria-label', 'aria-labelledby'];
     const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);
     const isBlock = createCheckFunction(options.blocks);
-    const langIgnore = options.langIgnore;
+    const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
@@ -260,7 +278,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         startOffset,
                         endNode,
                         endOffset: (endNode.textContent || '').length,
-                        lang: getNodeLang(startNode, langIgnore),
+                        lang: getNodeLang(startNode, root),
                         voice: getNodeVoice(startNode),
                     };
 
@@ -316,7 +334,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                         startOffset: range.startOffset,
                         endNode: range.endContainer,
                         endOffset: range.endOffset,
-                        lang: getNodeLang(currentNode, langIgnore),
+                        lang: getNodeLang(currentNode, root),
                         voice: getNodeVoice(currentNode),
                     };
 
@@ -373,7 +391,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                     startOffset,
                     endNode,
                     endOffset: (endNode.textContent || '').length,
-                    lang: getNodeLang(startNode, langIgnore),
+                    lang: getNodeLang(startNode, root),
                     voice: getNodeVoice(startNode),
                 };
 
@@ -454,7 +472,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
                 startOffset,
                 endNode,
                 endOffset,
-                lang: getNodeLang(startNode, langIgnore),
+                lang: getNodeLang(startNode, root),
                 voice: getNodeVoice(startNode),
             };
             if (collectBoundaries) {
@@ -504,7 +522,7 @@ export function* tokenize(element: Element, whatToShow = TokenType.ALL, options:
             startOffset,
             endNode,
             endOffset: (endNode.textContent || '').length,
-            lang: getNodeLang(startNode, langIgnore),
+            lang: getNodeLang(startNode, root),
             voice: getNodeVoice(startNode),
         };
         if (collectBoundaries) {
