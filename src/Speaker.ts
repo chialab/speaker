@@ -7,7 +7,7 @@ import {
     type CheckRule,
     type SentenceToken,
     TokenType,
-    tokenize,
+    TokenWalker,
 } from './Tokenizer';
 import { Utterance } from './Utterance';
 
@@ -149,6 +149,8 @@ export class Speaker extends Emitter<{
     #adapter: Adapter;
     #options: SpeakerOptions;
     #range: Range | null = null;
+    #tokensWalker: TokenWalker | null = null;
+    #currentBoundary: BoundaryToken | null = null;
 
     get rate(): number {
         return this.#rate;
@@ -240,15 +242,21 @@ export class Speaker extends Emitter<{
         let played = false;
         let currentUtterance: Utterance | null = null;
         let sentences: SentenceToken[] = [];
+        let boundaries: BoundaryToken[] = [];
 
-        const tokensIterator = tokenize(this.#element, TokenType.ALL, {
+        this.#tokensWalker = new TokenWalker(this.#element, TokenType.ALL, {
             range: range || undefined,
             ignore: this.#options.ignore,
             root: this.#options.root,
             altAttributes: this.#options.altAttributes,
         });
-        for (const token of tokensIterator) {
+
+        let token: SentenceToken | BlockToken | BoundaryToken | null = null;
+        while ((token = this.#tokensWalker.nextToken())) {
             switch (token.type) {
+                case TokenType.BOUNDARY:
+                    boundaries.push(token as BoundaryToken);
+                    break;
                 case TokenType.SENTENCE:
                     currentUtterance = null;
                     sentences.push(token);
@@ -258,6 +266,9 @@ export class Speaker extends Emitter<{
 
                     for (let index = 0, len = token.tokens.length; index < len; index++) {
                         const childToken = token.tokens[index];
+                        if (!boundaries.includes(childToken)) {
+                            continue;
+                        }
                         if (!this.#adapter.canSpeech(childToken)) {
                             continue;
                         }
@@ -273,9 +284,10 @@ export class Speaker extends Emitter<{
                             currentUtterance = new Utterance(this.#rate, language, childToken.voiceType, voices);
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
+                                this.#currentBoundary = currentToken as BoundaryToken;
                                 this.trigger('boundary', {
                                     token: currentToken,
-                                    block: token,
+                                    block: token as BlockToken,
                                     sentence:
                                         sentences.find((sentenceToken) =>
                                             sentenceToken.tokens.includes(currentToken)
@@ -316,6 +328,7 @@ export class Speaker extends Emitter<{
                     }
 
                     sentences = [];
+                    boundaries = [];
 
                     break;
                 }
@@ -373,10 +386,38 @@ export class Speaker extends Emitter<{
     }
 
     /**
+     * Rewind to the previous sentence or block.
+     */
+    async rewind(): Promise<void> {
+        if (!this.active || !this.#tokensWalker) {
+            throw 'missing active speech';
+        }
+        const boundary = this.#currentBoundary;
+        this.#adapter.cancel(true);
+        this.#tokensWalker.currentToken = boundary;
+        this.#tokensWalker.previousGroup(TokenType.SENTENCE);
+    }
+
+    /**
+     * Forward to the next sentence or block.
+     */
+    async forward(): Promise<void> {
+        if (!this.active || !this.#tokensWalker) {
+            throw 'missing active speech';
+        }
+        const boundary = this.#currentBoundary;
+        this.#adapter.cancel(true);
+        this.#tokensWalker.currentToken = boundary;
+        this.#tokensWalker.nextGroup(TokenType.SENTENCE);
+    }
+
+    /**
      * Clear the status of the Speaker.
      */
     private clear() {
         this.#range = null;
+        this.#tokensWalker = null;
+        this.#currentBoundary = null;
     }
 
     /**

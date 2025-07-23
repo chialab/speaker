@@ -199,6 +199,121 @@ export interface TokenizerOptions {
 }
 
 /**
+ * TokenWalker class to walk through tokens.
+ */
+export class TokenWalker {
+    private iterator: Generator<SentenceToken | BlockToken | BoundaryToken, void, unknown>;
+    private tokens: (SentenceToken | BlockToken | BoundaryToken)[] = [];
+
+    currentToken: SentenceToken | BlockToken | BoundaryToken | null = null;
+
+    /**
+     * Create a new TokenWalker instance.
+     * @param element The element to tokenize.
+     * @param whatToShow A unsigned long representing a bitmask created by combining the constant properties of TokenType.
+     * @param options A list of configurations for the tokenizer.
+     */
+    constructor(element: Element, whatToShow: TokenType, options: TokenizerOptions) {
+        this.iterator = tokenize(element, whatToShow, options);
+    }
+
+    /**
+     * Walk to first boundary token of the previous group.
+     */
+    previousGroup(type: TokenType): void {
+        if (!this.currentToken) {
+            return;
+        }
+
+        const { currentToken } = this;
+        let index = this.tokens.indexOf(currentToken);
+        if (index === -1) {
+            return;
+        }
+
+        while (index > 0) {
+            const token = this.tokens[index--];
+            if (token.type === type) {
+                while (true) {
+                    const nextToken = this.tokens[++index];
+                    if (nextToken === currentToken) {
+                        index = this.tokens.indexOf(token) - 1;
+                        break;
+                    }
+                    if (nextToken.type === TokenType.BOUNDARY) {
+                        this.currentToken = this.tokens[index - 1];
+                        return;
+                    }
+                }
+            }
+        }
+        this.currentToken = null;
+    }
+
+    /**
+     * Walk to the next boundary token of the next group.
+     */
+    nextGroup(type: TokenType): void {
+        if (!this.currentToken) {
+            return;
+        }
+
+        const { currentToken } = this;
+        let index = this.tokens.indexOf(currentToken);
+        if (index === -1) {
+            return;
+        }
+
+        while (index < this.tokens.length - 1) {
+            const token = this.tokens[index++];
+            if (token.type === type) {
+                this.currentToken = token;
+                let nextToken = this.nextToken();
+                while (nextToken) {
+                    if (nextToken === currentToken) {
+                        break;
+                    }
+                    if (nextToken.type === TokenType.BOUNDARY) {
+                        const index = this.tokens.indexOf(nextToken);
+                        this.currentToken = this.tokens[index - 1];
+                        return;
+                    }
+                    nextToken = this.nextToken();
+                }
+            }
+        }
+        this.currentToken = this.tokens[this.tokens.length - 1] || null;
+    }
+
+    /**
+     * Get the next token in the sequence.
+     * @returns The next token in the sequence or null if there are no more tokens.
+     */
+    nextToken(): SentenceToken | BlockToken | BoundaryToken | null {
+        if (this.currentToken) {
+            const index = this.tokens.indexOf(this.currentToken);
+            if (index !== -1 && index < this.tokens.length - 1) {
+                this.currentToken = this.tokens[index + 1];
+                return this.currentToken;
+            }
+        }
+        if (!this.currentToken && this.tokens.length > 0) {
+            this.currentToken = this.tokens[0];
+            return this.tokens[0];
+        }
+
+        const result = this.iterator.next();
+        if (result.done) {
+            return null;
+        }
+        const token = result.value;
+        this.tokens.push(token);
+        this.currentToken = token;
+        return token;
+    }
+}
+
+/**
  * Tokenize an element by boundaries, sentences and blocks.
  * @param element The element to tokenize.
  * @param whatToShow A unsigned long representing a bitmask created by combining the constant properties of TokenType.

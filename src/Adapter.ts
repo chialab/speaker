@@ -140,7 +140,7 @@ export class Adapter {
     /**
      * Cancel the current speaking.
      */
-    async cancel(): Promise<void> {
+    async cancel(resolvePromise = false): Promise<void> {
         const speechSynthesis = getSpeechSynthesis();
         this.#queue?.forEach((utterance) => {
             const speechUtterance = this.#utterances.get(utterance);
@@ -157,7 +157,11 @@ export class Adapter {
         speechSynthesis.cancel();
         await awaitState(() => !speechSynthesis.pending && !speechSynthesis.speaking);
         if (this.#playbackDeferred) {
-            this.#playbackDeferred.reject(new Error('Canceled'));
+            if (resolvePromise) {
+                this.#playbackDeferred.resolve();
+            } else {
+                this.#playbackDeferred.reject(new Error('Canceled'));
+            }
         }
         this.#playbackDeferred = null;
     }

@@ -122,6 +122,8 @@
         <button id="all">volume_up</button>
         <button id="play" disabled>play_arrow</button>
         <button id="stop" disabled>stop</button>
+        <button id="prev_token" disabled>keyboard_arrow_left</button>
+        <button id="next_token" disabled>keyboard_arrow_right</button>
         <select id="rate">
             <option value="0.5">0.5x</option>
             <option value="1" selected>1x</option>
@@ -133,7 +135,7 @@
     <article id="main">
         <h1 lang="it-IT">L'uomo pipistrello</h1>
         <p lang="it-IT">
-            Bruce Wayne, insieme al padre Thomas e alla madre Martha, va al cinema il 26 giugno per vedere Il segno
+            Bruce Wayne, insieme al padre Thomas e alla madre Martha va al cinema il 26 giugno per vedere Il segno
             di Zorro; all'uscita i genitori vengono rapinati da Joe Chill che nell'aggressione li uccide. Il
             bambino, rimasto traumatizzato, promette un giorno di iniziare a combattere i criminali con lo scopo di
             rendere la città di Gotham un luogo più sicuro. Bruce, ereditato il patrimonio di famiglia, viene
@@ -171,6 +173,8 @@
         const playButton = document.querySelector('#play');
         const stopButton = document.querySelector('#stop');
         const rateSelect = document.querySelector('#rate');
+        const prevTokenButton = document.querySelector('#prev_token');
+        const nextTokenButton = document.querySelector('#next_token');
         const article = document.querySelector('article');
         const speaker = new Speaker(article);
         console.log(speaker);
@@ -212,10 +216,28 @@
             speaker.setRate(event.currentTarget.value);
         });
 
+        prevTokenButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (speaker.active) {
+                speaker.rewind();
+            }
+        });
+
+        nextTokenButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (speaker.active) {
+                speaker.forward();
+            }
+        });
+
         speaker.on('play', () => {
             playButton.disabled = false;
             playButton.textContent = 'pause';
             stopButton.disabled = false;
+            prevTokenButton.disabled = false;
+            nextTokenButton.disabled = false;
         });
 
         speaker.on('pause', () => {
@@ -225,11 +247,15 @@
         speaker.on('cancel', () => {
             playButton.disabled = true;
             stopButton.disabled = true;
+            prevTokenButton.disabled = true;
+            nextTokenButton.disabled = true;
         });
 
         speaker.on('end', () => {
             playButton.disabled = true;
             stopButton.disabled = true;
+            prevTokenButton.disabled = true;
+            nextTokenButton.disabled = true;
         });
 
         speaker.on('error', (err) => {

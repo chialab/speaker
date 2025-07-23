@@ -1,7 +1,9 @@
 import { fileURLToPath } from 'node:url';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+    plugins: [basicSsl()],
     resolve: {
         alias: {
             '@chialab/speaker': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
