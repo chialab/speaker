@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.0-beta.6
+
+### Minor Changes
+
+- 9d4ede3: Add `rewind` and `forward` methods.
+
 ## 3.0.0-beta.5
 
 ### Patch Changes
