@@ -175,7 +175,7 @@ export class Speaker extends Emitter<{
             ignore: '[aria-hidden]',
             altAttributes: ['aria-label', 'aria-labelledby', 'alt', 'data-mathml'],
             ...options,
-            lang: normalizeLanguage(options.lang ?? getLang()),
+            lang: normalizeLanguage(options.lang || getLang()),
         };
         this.#rate = this.#options.rate;
         this.#lang = this.#options.lang;
