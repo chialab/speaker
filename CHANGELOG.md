@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.0-beta.7
+
+### Patch Changes
+
+- 5d014ef: Avoid empty string lang
+
 ## 3.0.0-beta.6
 
 ### Minor Changes
