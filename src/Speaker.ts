@@ -273,7 +273,7 @@ export class Speaker extends Emitter<{
                             continue;
                         }
 
-                        const language = normalizeLanguage(childToken.lang ?? this.#lang);
+                        const language = normalizeLanguage(childToken.lang || this.#lang);
                         const voices = normalizeVoices(childToken.voice || '') || null;
 
                         if (
