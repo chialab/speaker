@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.0-beta.8
+
+### Patch Changes
+
+- 338f5ed: added check for void lang attribute for tokens
+
 ## 3.0.0-beta.7
 
 ### Patch Changes
