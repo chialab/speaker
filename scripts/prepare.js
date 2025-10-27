@@ -19,18 +19,18 @@ for await (const jsonFile of jsonFiles) {
     const data = JSON.parse(await readFile(jsonFile, 'utf-8'));
     const voices = data.voices
         .filter((voice) => voice.preloaded)
-        .map((voice) => ({
-            name: voice.name,
-            lang: voice.language,
-            type: voice.gender || null,
-            quality: voice.quality.includes('veryHigh')
+        .map((voice) => [
+            voice.name,
+            voice.language,
+            voice.gender || null,
+            voice.quality.includes('veryHigh')
                 ? 4
                 : voice.quality.includes('high')
                   ? 3
                   : voice.quality.includes('normal')
                     ? 2
                     : 1,
-        }));
+        ]);
 
     languages.push(data.language);
     await writeFile(
@@ -45,8 +45,7 @@ for await (const jsonFile of jsonFiles) {
     );
 }
 
-await writeFile(join(voicesPath, 'index.ts'), [
-    "import type { Voice } from '../Voice';",
-    '',
-    `${languages.map((lang) => `export const ${lang}: () => Promise<Voice[]> = () => import('./${lang}').then((m) => m.default);`).join('\n')}`,
-]);
+await writeFile(
+    join(voicesPath, 'index.ts'),
+    `${languages.map((lang) => `export { default as ${lang} } from './${lang}';`).join('\n')}`
+);

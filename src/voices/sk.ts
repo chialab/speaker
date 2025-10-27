@@ -1,36 +1,11 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Viktoria Online (Natural) - Slovak (Slovakia)',
-        'lang': 'sk-SK',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Lukas Online (Natural) - Slovak (Slovakia)',
-        'lang': 'sk-SK',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Laura',
-        'lang': 'sk-SK',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Microsoft Filip - Slovak (Slovakia)',
-        'lang': 'sk-SK',
-        'type': 'male',
-        'quality': 2,
-    },
-    {
-        'name': 'Google Slovenčina (Natural)',
-        'lang': 'sk-SK',
-        'type': 'female',
-        'quality': 3,
-    },
+    ['Microsoft Viktoria Online (Natural) - Slovak (Slovakia)', 'sk-SK', 'female', 4],
+    ['Microsoft Lukas Online (Natural) - Slovak (Slovakia)', 'sk-SK', 'male', 4],
+    ['Laura', 'sk-SK', 'female', 2],
+    ['Microsoft Filip - Slovak (Slovakia)', 'sk-SK', 'male', 2],
+    ['Google Slovenčina (Natural)', 'sk-SK', 'female', 3],
 ];
 
 export default data;

@@ -227,12 +227,7 @@ export class Adapter {
             const SpeechSynthesisUtterance = getSpeechSynthesisUtterance();
             const speechUtterance = new SpeechSynthesisUtterance(utterance.getText());
             // setup utterance properties
-            const voice = await this.getVoice(
-                voices,
-                utterance.lang,
-                utterance.voiceType,
-                utterance.voices?.split(',')
-            );
+            const voice = this.getVoice(voices, utterance.lang, utterance.voiceType, utterance.voices?.split(','));
             if (!voice) {
                 continue;
             }
@@ -321,7 +316,7 @@ export class Adapter {
      * @param requestedLang The requested language.
      * @param requestedVoices The requested voices.
      */
-    private async getVoice(
+    private getVoice(
         voices: SpeechSynthesisVoice[],
         requestedLang: string,
         requestedVoiceType?: string | null,
@@ -347,18 +342,19 @@ export class Adapter {
 
         const shortLang = normalizedLang.split('-')[0];
         if (shortLang in voicesLoader) {
-            const knownVoices = (await voicesLoader[shortLang as 'en']()).sort((a, b) => b.quality - a.quality);
+            // biome-ignore lint/performance/noDynamicNamespaceImportAccess: We dont treeshake voice anyway cause of iOS
+            const knownVoices = voicesLoader[shortLang as 'en'].sort((a, b) => b[3] - a[3]);
             const knownVoice =
                 knownVoices.find(
                     (v) =>
-                        (requestedVoiceType ? v.type === requestedVoiceType : true) &&
-                        availableVoices.some((voice) => voice.name === v.name)
+                        (requestedVoiceType ? v[2] === requestedVoiceType : true) &&
+                        availableVoices.some((voice) => voice.name === v[0])
                 ) ||
                 (requestedVoiceType
-                    ? knownVoices.find((v) => availableVoices.some((voice) => voice.name === v.name))
+                    ? knownVoices.find((v) => availableVoices.some((voice) => voice.name === v[0]))
                     : undefined);
             if (knownVoice) {
-                return availableVoices.find((voice) => voice.name === knownVoice.name);
+                return availableVoices.find((voice) => voice.name === knownVoice[0]);
             }
         }
 

@@ -1,36 +1,11 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Noemi Online (Natural) - Hungarian (Hungary)',
-        'lang': 'hu-HU',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Tamas Online (Natural) - Hungarian (Hungary)',
-        'lang': 'hu-HU',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Tünde',
-        'lang': 'hu-HU',
-        'type': 'female',
-        'quality': 3,
-    },
-    {
-        'name': 'Microsoft Szabolcs - Hungarian (Hungary)',
-        'lang': 'hu-HU',
-        'type': 'male',
-        'quality': 2,
-    },
-    {
-        'name': 'Google Magyar (Natural)',
-        'lang': 'hu-HU',
-        'type': 'female',
-        'quality': 3,
-    },
+    ['Microsoft Noemi Online (Natural) - Hungarian (Hungary)', 'hu-HU', 'female', 4],
+    ['Microsoft Tamas Online (Natural) - Hungarian (Hungary)', 'hu-HU', 'male', 4],
+    ['Tünde', 'hu-HU', 'female', 3],
+    ['Microsoft Szabolcs - Hungarian (Hungary)', 'hu-HU', 'male', 2],
+    ['Google Magyar (Natural)', 'hu-HU', 'female', 3],
 ];
 
 export default data;

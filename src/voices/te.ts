@@ -1,36 +1,11 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Shruti Online (Natural) - Telugu (India)',
-        'lang': 'te-IN',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Mohan Online (Natural) - Telugu (India)',
-        'lang': 'te-IN',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Geeta',
-        'lang': 'te-IN',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google te-in-x-tef-network',
-        'lang': 'te-IN',
-        'type': 'female',
-        'quality': 3,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google te-in-x-tem-network',
-        'lang': 'te-IN',
-        'type': 'male',
-        'quality': 3,
-    },
+    ['Microsoft Shruti Online (Natural) - Telugu (India)', 'te-IN', 'female', 4],
+    ['Microsoft Mohan Online (Natural) - Telugu (India)', 'te-IN', 'male', 4],
+    ['Geeta', 'te-IN', 'female', 2],
+    ['Android Speech Recognition and Synthesis from Google te-in-x-tef-network', 'te-IN', 'female', 3],
+    ['Android Speech Recognition and Synthesis from Google te-in-x-tem-network', 'te-IN', 'male', 3],
 ];
 
 export default data;

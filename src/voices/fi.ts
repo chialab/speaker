@@ -1,36 +1,11 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Noora Online (Natural) - Finnish (Finland)',
-        'lang': 'fi-FI',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Harri Online (Natural) - Finnish (Finland)',
-        'lang': 'fi-FI',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Satu',
-        'lang': 'fi-FI',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Microsoft Heidi - Finnish (Finland)',
-        'lang': 'fi-FI',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Google Suomi (Natural)',
-        'lang': 'fi-FI',
-        'type': 'female',
-        'quality': 3,
-    },
+    ['Microsoft Noora Online (Natural) - Finnish (Finland)', 'fi-FI', 'female', 4],
+    ['Microsoft Harri Online (Natural) - Finnish (Finland)', 'fi-FI', 'male', 4],
+    ['Satu', 'fi-FI', 'female', 2],
+    ['Microsoft Heidi - Finnish (Finland)', 'fi-FI', 'female', 2],
+    ['Google Suomi (Natural)', 'fi-FI', 'female', 3],
 ];
 
 export default data;

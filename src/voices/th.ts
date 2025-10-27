@@ -1,36 +1,11 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Premwadee Online (Natural) - Thai (Thailand)',
-        'lang': 'th-TH',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Niwat Online (Natural) - Thai (Thailand)',
-        'lang': 'th-TH',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Kanya',
-        'lang': 'th-TH',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Microsoft Pattara - Thai (Thailand)',
-        'lang': 'th-TH',
-        'type': 'male',
-        'quality': 2,
-    },
-    {
-        'name': 'Google ไทย (Natural)',
-        'lang': 'th-TH',
-        'type': 'female',
-        'quality': 3,
-    },
+    ['Microsoft Premwadee Online (Natural) - Thai (Thailand)', 'th-TH', 'female', 4],
+    ['Microsoft Niwat Online (Natural) - Thai (Thailand)', 'th-TH', 'male', 4],
+    ['Kanya', 'th-TH', 'female', 2],
+    ['Microsoft Pattara - Thai (Thailand)', 'th-TH', 'male', 2],
+    ['Google ไทย (Natural)', 'th-TH', 'female', 3],
 ];
 
 export default data;

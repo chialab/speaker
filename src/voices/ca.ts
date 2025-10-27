@@ -1,36 +1,11 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Joana Online (Natural) - Catalan',
-        'lang': 'ca-ES',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Enric Online (Natural) - Catalan',
-        'lang': 'ca-ES',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Montse',
-        'lang': 'ca-ES',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Microsoft Herena - Catalan (Spain)',
-        'lang': 'ca-ES',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google ca-es-x-caf-network',
-        'lang': 'ca-ES',
-        'type': 'female',
-        'quality': 3,
-    },
+    ['Microsoft Joana Online (Natural) - Catalan', 'ca-ES', 'female', 4],
+    ['Microsoft Enric Online (Natural) - Catalan', 'ca-ES', 'male', 4],
+    ['Montse', 'ca-ES', 'female', 2],
+    ['Microsoft Herena - Catalan (Spain)', 'ca-ES', 'female', 2],
+    ['Android Speech Recognition and Synthesis from Google ca-es-x-caf-network', 'ca-ES', 'female', 3],
 ];
 
 export default data;

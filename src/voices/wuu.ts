@@ -1,12 +1,5 @@
 import type { Voice } from '../Voice';
 
-const data: Voice[] = [
-    {
-        'name': 'Nannan',
-        'lang': 'wuu-CN',
-        'type': 'female',
-        'quality': 2,
-    },
-];
+const data: Voice[] = [['Nannan', 'wuu-CN', 'female', 2]];
 
 export default data;

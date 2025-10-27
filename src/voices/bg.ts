@@ -1,36 +1,11 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Kalina Online (Natural) - Bulgarian (Bulgaria)',
-        'lang': 'bg-BG',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Borislav Online (Natural) - Bulgarian (Bulgaria)',
-        'lang': 'bg-BG',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Daria',
-        'lang': 'bg-BG',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Microsoft Ivan - Bulgarian (Bulgaria)',
-        'lang': 'bg-BG',
-        'type': 'male',
-        'quality': 2,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google bg-bg-x-ifk-network',
-        'lang': 'bg-BG',
-        'type': 'female',
-        'quality': 3,
-    },
+    ['Microsoft Kalina Online (Natural) - Bulgarian (Bulgaria)', 'bg-BG', 'female', 4],
+    ['Microsoft Borislav Online (Natural) - Bulgarian (Bulgaria)', 'bg-BG', 'male', 4],
+    ['Daria', 'bg-BG', 'female', 2],
+    ['Microsoft Ivan - Bulgarian (Bulgaria)', 'bg-BG', 'male', 2],
+    ['Android Speech Recognition and Synthesis from Google bg-bg-x-ifk-network', 'bg-BG', 'female', 3],
 ];
 
 export default data;

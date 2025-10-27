@@ -1,24 +1,9 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Dilara Online (Natural) - Persian (Iran)',
-        'lang': 'fa-IR',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Farid Online (Natural) - Persian (Iran)',
-        'lang': 'fa-IR',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Dariush',
-        'lang': 'fa-IR',
-        'type': 'male',
-        'quality': 2,
-    },
+    ['Microsoft Dilara Online (Natural) - Persian (Iran)', 'fa-IR', 'female', 4],
+    ['Microsoft Farid Online (Natural) - Persian (Iran)', 'fa-IR', 'male', 4],
+    ['Dariush', 'fa-IR', 'male', 2],
 ];
 
 export default data;

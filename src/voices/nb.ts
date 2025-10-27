@@ -1,60 +1,15 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Pernille Online (Natural) - Norwegian (Bokmål, Norway)',
-        'lang': 'nb-NO',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Finn Online (Natural) - Norwegian (Bokmål Norway)',
-        'lang': 'nb-NO',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Nora',
-        'lang': 'nb-NO',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Microsoft Jon - Norwegian (Bokmål Norway)',
-        'lang': 'nb-NO',
-        'type': 'male',
-        'quality': 2,
-    },
-    {
-        'name': 'Google Norsk Bokmål 2 (Natural)',
-        'lang': 'nb-NO',
-        'type': 'female',
-        'quality': 3,
-    },
-    {
-        'name': 'Google Norsk Bokmål 1 (Natural)',
-        'lang': 'nb-NO',
-        'type': 'female',
-        'quality': 3,
-    },
-    {
-        'name': 'Google Norsk Bokmål 4 (Natural)',
-        'lang': 'nb-NO',
-        'type': 'female',
-        'quality': 3,
-    },
-    {
-        'name': 'Google Norsk Bokmål 3 (Natural)',
-        'lang': 'nb-NO',
-        'type': 'male',
-        'quality': 3,
-    },
-    {
-        'name': 'Google Norsk Bokmål 5 (Natural)',
-        'lang': 'nb-NO',
-        'type': 'male',
-        'quality': 3,
-    },
+    ['Microsoft Pernille Online (Natural) - Norwegian (Bokmål, Norway)', 'nb-NO', 'female', 4],
+    ['Microsoft Finn Online (Natural) - Norwegian (Bokmål Norway)', 'nb-NO', 'male', 4],
+    ['Nora', 'nb-NO', 'female', 2],
+    ['Microsoft Jon - Norwegian (Bokmål Norway)', 'nb-NO', 'male', 2],
+    ['Google Norsk Bokmål 2 (Natural)', 'nb-NO', 'female', 3],
+    ['Google Norsk Bokmål 1 (Natural)', 'nb-NO', 'female', 3],
+    ['Google Norsk Bokmål 4 (Natural)', 'nb-NO', 'female', 3],
+    ['Google Norsk Bokmål 3 (Natural)', 'nb-NO', 'male', 3],
+    ['Google Norsk Bokmål 5 (Natural)', 'nb-NO', 'male', 3],
 ];
 
 export default data;

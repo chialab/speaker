@@ -1,66 +1,16 @@
 import type { Voice } from '../Voice';
 
 const data: Voice[] = [
-    {
-        'name': 'Microsoft Tanishaa Online (Natural) - Bengali (India)',
-        'lang': 'bn-IN',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Bashkar Online (Natural) - Bangla (India)',
-        'lang': 'bn-IN',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Nabanita Online (Natural) - Bangla (Bangladesh)',
-        'lang': 'bn-BD',
-        'type': 'female',
-        'quality': 4,
-    },
-    {
-        'name': 'Microsoft Pradeep Online (Natural) - Bangla (Bangladesh)',
-        'lang': 'bn-BD',
-        'type': 'male',
-        'quality': 4,
-    },
-    {
-        'name': 'Piya',
-        'lang': 'bn-IN',
-        'type': 'female',
-        'quality': 2,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google bn-in-x-bnf-network',
-        'lang': 'bn-IN',
-        'type': 'female',
-        'quality': 3,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google bn-in-x-bnx-network',
-        'lang': 'bn-IN',
-        'type': 'female',
-        'quality': 3,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google bn-in-x-bin-network',
-        'lang': 'bn-IN',
-        'type': 'male',
-        'quality': 3,
-    },
-    {
-        'name': 'Android Speech Recognition and Synthesis from Google bn-in-x-bnm-network',
-        'lang': 'bn-IN',
-        'type': 'male',
-        'quality': 3,
-    },
-    {
-        'name': 'Google বাংলা (Natural)',
-        'lang': 'bn-BD',
-        'type': 'male',
-        'quality': 3,
-    },
+    ['Microsoft Tanishaa Online (Natural) - Bengali (India)', 'bn-IN', 'female', 4],
+    ['Microsoft Bashkar Online (Natural) - Bangla (India)', 'bn-IN', 'male', 4],
+    ['Microsoft Nabanita Online (Natural) - Bangla (Bangladesh)', 'bn-BD', 'female', 4],
+    ['Microsoft Pradeep Online (Natural) - Bangla (Bangladesh)', 'bn-BD', 'male', 4],
+    ['Piya', 'bn-IN', 'female', 2],
+    ['Android Speech Recognition and Synthesis from Google bn-in-x-bnf-network', 'bn-IN', 'female', 3],
+    ['Android Speech Recognition and Synthesis from Google bn-in-x-bnx-network', 'bn-IN', 'female', 3],
+    ['Android Speech Recognition and Synthesis from Google bn-in-x-bin-network', 'bn-IN', 'male', 3],
+    ['Android Speech Recognition and Synthesis from Google bn-in-x-bnm-network', 'bn-IN', 'male', 3],
+    ['Google বাংলা (Natural)', 'bn-BD', 'male', 3],
 ];
 
 export default data;
