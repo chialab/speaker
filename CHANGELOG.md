@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.0-beta.9
+
+### Patch Changes
+
+- 473ceda: Do not asynchronously load voice definitions to avoid loading issues with iOS Safari.
+
 ## 3.0.0-beta.8
 
 ### Patch Changes
