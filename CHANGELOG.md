@@ -1,5 +1,27 @@
 # @chialab/speaker
 
+## 3.0.0
+
+### Major Changes
+
+- e242595: Use CSS highlights.
+
+### Minor Changes
+
+- 9d4ede3: Add `rewind` and `forward` methods.
+- adb1850: Fix tokenization of selected ranges.
+
+### Patch Changes
+
+- 2e08e5f: Correctly check if element is part of a range when it preceeds and contains the range.
+- 311c3fb: Allow custom regexp to check sentence ending.
+- 8634b82: Fix absolute positioned elements.
+- 86895b6: Support voice quality and type.
+- 338f5ed: added check for void lang attribute for tokens
+- 473ceda: Do not asynchronously load voice definitions to avoid loading issues with iOS Safari.
+- 5d014ef: Avoid empty string lang
+- 8a20d49: Handle inline elements inside SVG.
+
 ## 3.0.0-beta.9
 
 ### Patch Changes
