@@ -131,8 +131,22 @@ function checkDisplayNone(node: Node) {
     if (!containerElement) {
         return true;
     }
-
-    return containerElement.offsetParent === null;
+    if (containerElement.style.display === 'none') {
+        return true;
+    }
+    if (containerElement.style.visibility === 'hidden') {
+        return true;
+    }
+    if (containerElement.hidden) {
+        return true;
+    }
+    if (!containerElement.isConnected) {
+        return true;
+    }
+    if (!containerElement.offsetWidth || !containerElement.offsetHeight) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -193,6 +207,7 @@ export interface TokenizerOptions {
     range?: Range;
     ignore?: CheckRule;
     blocks?: CheckRule;
+    inputs?: CheckRule;
     altAttributes?: string[];
     root?: string | Element;
     sentenceEndRegexp?: RegExp;
@@ -328,6 +343,17 @@ export function* tokenize(
     const altAttributes = options.altAttributes ?? ['alt', 'aria-label', 'aria-labelledby'];
     const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);
     const isBlock = createCheckFunction(options.blocks);
+    const isInput = createCheckFunction(
+        options.inputs ?? [
+            'textarea',
+            'select',
+            'input[type="text"]',
+            'input[type="search"]',
+            'input[type="email"]',
+            'input[type="url"]',
+            'input[type="tel"]',
+        ]
+    );
     const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
@@ -372,27 +398,38 @@ export function* tokenize(
         const isElement = currentNode.nodeType === Node.ELEMENT_NODE;
 
         let textValue = '';
-        for (let i = 0; i < altAttributes.length; i++) {
-            const attrName = altAttributes[i];
-            if (isElement && (currentNode as Element).hasAttribute(attrName)) {
-                if (attrName === 'aria-labelledby') {
-                    const selector = (currentNode as Element).getAttribute(attrName) || '';
-                    if (selector) {
-                        const label = currentNode.ownerDocument?.querySelector(`[id="${selector}"]`);
-                        if (label) {
-                            textValue = label.textContent || '';
-                        }
-                    }
-                } else {
-                    textValue = (currentNode as Element).getAttribute(attrName) || '';
-                }
-                break;
+        if (isInput(currentNode)) {
+            if ((currentNode as HTMLElement).tagName === 'SELECT') {
+                const options = (currentNode as HTMLSelectElement).querySelectorAll('option:checked');
+                textValue = Array.from(options)
+                    .map((option) => option.textContent || '')
+                    .join(' ');
+            } else {
+                textValue = (currentNode as HTMLInputElement).value;
             }
-            const closestElement = (isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(
-                `[${attrName}]`
-            );
-            if (closestElement && element.contains(closestElement)) {
-                continue tokenIterator;
+        } else if (!currentNode.textContent?.trim()) {
+            for (let i = 0; i < altAttributes.length; i++) {
+                const attrName = altAttributes[i];
+                if (isElement && (currentNode as Element).hasAttribute(attrName)) {
+                    if (attrName === 'aria-labelledby') {
+                        const selector = (currentNode as Element).getAttribute(attrName) || '';
+                        if (selector) {
+                            const label = currentNode.ownerDocument?.querySelector(`[id="${selector}"]`);
+                            if (label) {
+                                textValue = label.textContent || '';
+                            }
+                        }
+                    } else {
+                        textValue = (currentNode as Element).getAttribute(attrName) || '';
+                    }
+                    break;
+                }
+                const closestElement = (isElement ? (currentNode as Element) : currentNode.parentElement)?.closest(
+                    `[${attrName}]`
+                );
+                if (closestElement && element.contains(closestElement)) {
+                    continue tokenIterator;
+                }
             }
         }
 
