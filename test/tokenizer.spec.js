@@ -179,8 +179,7 @@ describe('tokenizer', () => {
     });
 
     test('should use aria-labelledby', () => {
-        container.innerHTML =
-            '<p aria-labelledby="label">Lorem ipsum</p><div id="label" aria-hidden="true">dolor sit</div>';
+        container.innerHTML = '<p aria-labelledby="label"></p><div id="label" aria-hidden="true">dolor sit</div>';
 
         const tokens = [...tokenize(container, TokenType.ALL)];
         expect(tokens).toHaveLength(3);
