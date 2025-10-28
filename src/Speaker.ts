@@ -145,7 +145,7 @@ export class Speaker extends Emitter<{
 }> {
     #rate: number;
     #lang: string;
-    #element: HTMLElement;
+    #element: Element;
     #adapter: Adapter;
     #options: SpeakerOptions;
     #range: Range | null = null;
@@ -165,7 +165,7 @@ export class Speaker extends Emitter<{
      * @param root The root element of the document to speak.
      * @param options A set of options for the library.
      */
-    constructor(root: HTMLElement, options: Partial<SpeakerOptions> = {}) {
+    constructor(root: Element, options: Partial<SpeakerOptions> = {}) {
         super();
 
         this.#element = root;
