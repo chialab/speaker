@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.0.1
+
+### Patch Changes
+
+- 1af4ba6: Support generic `Element`s.
+
 ## 3.0.0
 
 ### Major Changes
