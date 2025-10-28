@@ -167,7 +167,7 @@ describe('tokenizer', () => {
 
     test('should use alternative text', () => {
         container.innerHTML =
-            '<p>Lorem ipsum</p><img alt="alternative text" style="display: block;">dolor <span aria-label="amet">sit</span>';
+            '<p>Lorem ipsum</p><img alt="alternative text" style="display: block;">dolor <span aria-label="amet"></span>';
 
         const tokens = [...tokenize(container, TokenType.ALL)];
         expect(tokens).toHaveLength(11);
