@@ -143,7 +143,7 @@ function checkDisplayNone(node: Node) {
     if (!containerElement.isConnected) {
         return true;
     }
-    if (!containerElement.offsetWidth || !containerElement.offsetHeight) {
+    if (!containerElement.offsetWidth && !containerElement.offsetHeight) {
         return true;
     }
     return false;
