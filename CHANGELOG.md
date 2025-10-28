@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.1.0
+
+### Minor Changes
+
+- 30de9c3: Add support for inputs and textareas.
+
 ## 3.0.1
 
 ### Patch Changes
