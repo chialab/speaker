@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.1.1
+
+### Patch Changes
+
+- 7ef07fa: Only check for offset parent.
+
 ## 3.1.0
 
 ### Minor Changes
