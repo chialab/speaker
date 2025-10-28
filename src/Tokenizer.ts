@@ -131,22 +131,7 @@ function checkDisplayNone(node: Node) {
     if (!containerElement) {
         return true;
     }
-    if (containerElement.style.display === 'none') {
-        return true;
-    }
-    if (containerElement.style.visibility === 'hidden') {
-        return true;
-    }
-    if (containerElement.hidden) {
-        return true;
-    }
-    if (!containerElement.isConnected) {
-        return true;
-    }
-    if (!containerElement.offsetWidth && !containerElement.offsetHeight) {
-        return true;
-    }
-    return false;
+    return containerElement.offsetParent === null;
 }
 
 /**
