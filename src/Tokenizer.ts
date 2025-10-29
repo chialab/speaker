@@ -65,11 +65,12 @@ export type CheckRule = string | CheckFunction | CheckRule[];
 /**
  * Collapse all ignore rules to a single function.
  * @param rules Given rules.
+ * @param deep Whether to check deeply or not.
  * @returns A function that returns true if the node has to be ignored.
  */
-function createCheckFunction(rules?: CheckRule): CheckFunction {
+function createCheckFunction(rules?: CheckRule, deep = false): CheckFunction {
     if (Array.isArray(rules)) {
-        const fns = rules.map(createCheckFunction);
+        const fns = rules.map((rule) => createCheckFunction(rule, deep));
         return (node) => fns.some((fn) => fn(node));
     }
     if (typeof rules === 'string') {
@@ -78,7 +79,10 @@ function createCheckFunction(rules?: CheckRule): CheckFunction {
             if (!containerElement) {
                 return true;
             }
+            if (deep) {
             return containerElement.closest(rules) !== null;
+            }
+            return containerElement.matches(rules);
         };
     }
     if (typeof rules === 'function') {
@@ -326,8 +330,22 @@ export function* tokenize(
 ): Generator<SentenceToken | BlockToken | BoundaryToken, void, unknown> {
     const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
     const altAttributes = options.altAttributes ?? ['alt', 'aria-label', 'aria-labelledby'];
-    const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]']);
-    const isBlock = createCheckFunction(options.blocks);
+    const ignore = createCheckFunction(options.ignore ?? ['[aria-hidden]'], true);
+    const isBlock = createCheckFunction(
+        options.blocks ?? [
+            'p',
+            'div',
+            'section',
+            'article',
+            'header',
+            'footer',
+            'aside',
+            'nav',
+            'main',
+            'li',
+            'blockquote',
+        ]
+    );
     const isInput = createCheckFunction(
         options.inputs ?? [
             'textarea',
