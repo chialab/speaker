@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.2.0
+
+### Minor Changes
+
+- 2a7e4d4: Set default block types.
+
 ## 3.1.1
 
 ### Patch Changes
