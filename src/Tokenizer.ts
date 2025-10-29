@@ -80,7 +80,7 @@ function createCheckFunction(rules?: CheckRule, deep = false): CheckFunction {
                 return true;
             }
             if (deep) {
-            return containerElement.closest(rules) !== null;
+                return containerElement.closest(rules) !== null;
             }
             return containerElement.matches(rules);
         };
@@ -135,6 +135,14 @@ function checkDisplayNone(node: Node) {
     if (!containerElement) {
         return true;
     }
+
+    if (containerElement.parentElement) {
+        const style = getComputedStyle(containerElement);
+        if (style.display === 'contents') {
+            return checkDisplayNone(containerElement.parentElement);
+        }
+    }
+
     return containerElement.offsetParent === null;
 }
 
