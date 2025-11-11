@@ -35,6 +35,10 @@ export interface SpeakerOptions {
      * List of attributes for alternative text.
      */
     altAttributes?: string[];
+    /**
+     * Regular expression for sentence ending detection.
+     */
+    sentenceEndRegexp?: RegExp;
 }
 
 /**
@@ -249,6 +253,7 @@ export class Speaker extends Emitter<{
             ignore: this.#options.ignore,
             root: this.#options.root,
             altAttributes: this.#options.altAttributes,
+            sentenceEndRegexp: this.#options.sentenceEndRegexp,
         });
 
         let token: SentenceToken | BlockToken | BoundaryToken | null = null;
