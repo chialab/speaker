@@ -1,5 +1,15 @@
 # @chialab/speaker
 
+## 3.2.0
+
+### Minor Changes
+
+- 2a7e4d4: Set default block types.
+
+### Patch Changes
+
+- 3808c8b: accept sentence end regexp as option
+
 ## 3.1.1
 
 ### Patch Changes
