@@ -1,4 +1,85 @@
 /**
+ * Notable abbreviations that should not be treated as sentence endings.
+ * All checks are case-insensitive.
+ */
+const NOTABLE_ABBREVIATIONS = [
+    'a.a.',
+    'a.C.',
+    'a.C.n.',
+    'AA. VV.',
+    'app.',
+    'art.',
+    'artt.',
+    'ca.',
+    'c.a.',
+    'cap.',
+    'capp.',
+    'c.c.',
+    'cfr.',
+    'cit.',
+    'citt.',
+    'c.s.',
+    'col.',
+    'coll.',
+    'cpv.',
+    'd.C.',
+    'd.C.n.',
+    'd.c.',
+    'diz.',
+    'e.g.',
+    'ecc.',
+    'etc.',
+    'ed.',
+    'enc.',
+    'es.',
+    'ess.',
+    'f.',
+    'ff.',
+    'fig.',
+    'figg.',
+    'gg.',
+    'i.e.',
+    'min.',
+    'ms.',
+    'mss.',
+    'n.',
+    'NB.',
+    'P.S.',
+    'PS.',
+    'p.',
+    'pp.',
+    'pag.',
+    'par.',
+    'parr.',
+    'prov.',
+    'q.b.',
+    'rif.',
+    's.',
+    'sg.',
+    'ss.',
+    'sgg.',
+    'sec.',
+    'Sig.',
+    'dott.',
+    'mr.',
+    'mrs.',
+    'ms.',
+    'Sig.na',
+    'Sig.ra',
+    'tab.',
+    'tabb.',
+    'tav.',
+    'tavv.',
+    'trad.',
+    'tratt.',
+    'v.',
+    'vv.',
+    'vd.',
+    'vol.',
+    'voll.',
+];
+
+/**
  * Token types.
  */
 export const TokenType = {
@@ -126,6 +207,22 @@ function checkDisplayBlock(element: Element) {
 }
 
 /**
+ * Check if a text chunk ends with a notable abbreviation.
+ * @param text The text to check.
+ * @param abbreviations The list of abbreviations to check against.
+ * @returns True if the text ends with a notable abbreviation.
+ */
+function endsWithNotableAbbreviation(text: string, abbreviations: string[]): boolean {
+    const trimmed = text.trim();
+    for (const abbr of abbreviations) {
+        if (trimmed.toLowerCase().endsWith(abbr.toLowerCase())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Check if node is hidden.
  * @param node The node to check.
  * @returns True if the node is hidden.
@@ -208,6 +305,7 @@ export interface TokenizerOptions {
     altAttributes?: string[];
     root?: string | Element;
     sentenceEndRegexp?: RegExp;
+    notableAbbreviations?: string[];
 }
 
 /**
@@ -378,6 +476,7 @@ export function* tokenize(
     const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
+    const notableAbbreviations = options.notableAbbreviations ?? NOTABLE_ABBREVIATIONS;
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
@@ -673,7 +772,13 @@ export function* tokenize(
             }
             if (collectSentences) {
                 currentSentenceTokens.push(token);
-                if (sentenceEndRegexp.test(chunk)) {
+                // If the pattern includes period and the chunk ends with a notable abbreviation, don't split
+                const matchesSentenceEnd = sentenceEndRegexp.test(chunk);
+                const periodIsDelimiter = sentenceEndRegexp.test('.');
+                const shouldIgnoreAbbreviation =
+                    periodIsDelimiter && endsWithNotableAbbreviation(chunk, notableAbbreviations);
+
+                if (matchesSentenceEnd && !shouldIgnoreAbbreviation) {
                     yield {
                         type: TokenType.SENTENCE,
                         startNode: currentSentenceTokens[0].startNode,
