@@ -775,10 +775,10 @@ export function* tokenize(
                 // If the pattern includes period and the chunk ends with a notable abbreviation, don't split
                 const matchesSentenceEnd = sentenceEndRegexp.test(chunk);
                 const periodIsDelimiter = sentenceEndRegexp.test('.');
-                const shouldIgnoreAbbreviation =
+                const endsWithAbbreviation =
                     periodIsDelimiter && endsWithNotableAbbreviation(chunk, notableAbbreviations);
 
-                if (matchesSentenceEnd && !shouldIgnoreAbbreviation) {
+                if (matchesSentenceEnd && !endsWithAbbreviation) {
                     yield {
                         type: TokenType.SENTENCE,
                         startNode: currentSentenceTokens[0].startNode,
