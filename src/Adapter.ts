@@ -342,7 +342,6 @@ export class Adapter {
 
         const shortLang = normalizedLang.split('-')[0];
         if (shortLang in voicesLoader) {
-            // biome-ignore lint/performance/noDynamicNamespaceImportAccess: We dont treeshake voice anyway cause of iOS
             const knownVoices = voicesLoader[shortLang as 'en'].sort((a, b) => b[3] - a[3]);
             const knownVoice =
                 knownVoices.find(

@@ -1,3 +1,5 @@
+import * as abbrs from './abbreviations/index';
+
 /**
  * Token types.
  */
@@ -224,7 +226,7 @@ export interface TokenizerOptions {
     altAttributes?: string[];
     root?: string | Element;
     sentenceEndRegexp?: RegExp;
-    notableAbbreviations?: string[];
+    notableAbbreviations?: Record<string, string[]>;
 }
 
 /**
@@ -395,7 +397,7 @@ export function* tokenize(
     const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
-    const notableAbbreviations = options.notableAbbreviations || [];
+    const periodIsDelimiter = sentenceEndRegexp.test('.');
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
@@ -675,6 +677,7 @@ export function* tokenize(
 
             chunk += currentChunk;
 
+            const lang = getNodeLang(startNode, root);
             const token: BoundaryToken = {
                 type: TokenType.BOUNDARY,
                 text: chunk,
@@ -682,7 +685,7 @@ export function* tokenize(
                 startOffset,
                 endNode,
                 endOffset,
-                lang: getNodeLang(startNode, root),
+                lang,
                 voiceType: getNodeVoiceType(startNode),
                 voice: getNodeVoice(startNode),
             };
@@ -693,7 +696,17 @@ export function* tokenize(
                 currentSentenceTokens.push(token);
                 // If the pattern includes period and the chunk ends with a notable abbreviation, don't split
                 const matchesSentenceEnd = sentenceEndRegexp.test(chunk);
-                const periodIsDelimiter = sentenceEndRegexp.test('.');
+                const notableAbbreviations = (() => {
+                    const tokenLang = lang?.toLowerCase() || 'en';
+                    const shortLang = tokenLang.split(/[-_]/)[0];
+
+                    return (
+                        options.notableAbbreviations?.[tokenLang] ??
+                        options.notableAbbreviations?.[shortLang] ??
+                        abbrs[shortLang as keyof typeof abbrs] ??
+                        abbrs.en
+                    );
+                })();
                 const endsWithAbbreviation =
                     periodIsDelimiter && endsWithNotableAbbreviation(chunk, notableAbbreviations);
 

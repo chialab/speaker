@@ -187,9 +187,9 @@ describe('tokenizer', () => {
     });
 
     test('should not split sentences on abbreviations with multiple periods', () => {
-        container.innerHTML = '<p>Aggiungi gli ingredienti q.b. e mescola bene.</p>';
+        container.innerHTML = '<p lang="it">Aggiungi gli ingredienti q.b. e mescola bene.</p>';
 
-        const tokens = [...tokenize(container, TokenType.SENTENCE, { notableAbbreviations: ['q.b.'] })];
+        const tokens = [...tokenize(container, TokenType.SENTENCE, { notableAbbreviations: { it: ['q.b.'] } })];
         expect(tokens).toHaveLength(1);
         expect(tokens[0]).toMatchObject({
             type: 2,
@@ -199,9 +199,11 @@ describe('tokenizer', () => {
     });
 
     test('should not split sentences on abbreviations with single period', () => {
-        container.innerHTML = '<p>Ho comprato frutta, verdura, ecc. e sono tornato a casa.</p>';
+        container.innerHTML = '<p lang="it">Ho comprato frutta, verdura, ecc. e sono tornato a casa.</p>';
 
-        const tokens = [...tokenize(container, TokenType.SENTENCE, { notableAbbreviations: ['ecc.', 'q.b.', 'a.c.'] })];
+        const tokens = [
+            ...tokenize(container, TokenType.SENTENCE, { notableAbbreviations: { it: ['ecc.', 'q.b.', 'a.c.'] } }),
+        ];
         expect(tokens).toHaveLength(1);
         expect(tokens[0]).toMatchObject({
             type: 2,
@@ -213,7 +215,7 @@ describe('tokenizer', () => {
     test('should split sentences when abbreviations list is empty', () => {
         container.innerHTML = '<p>Ho comprato frutta, verdura, ecc. e sono tornato a casa.</p>';
 
-        const tokens = [...tokenize(container, TokenType.SENTENCE, { notableAbbreviations: [] })];
+        const tokens = [...tokenize(container, TokenType.SENTENCE)];
         expect(tokens).toHaveLength(2);
         expect(tokens[0]).toMatchObject({
             type: 2,
