@@ -11,6 +11,86 @@ import {
 } from './Tokenizer';
 import { Utterance } from './Utterance';
 
+const DEFAULT_LANG = 'en-US';
+
+/**
+ * Notable abbreviations that should not be treated as sentence endings.
+ * All checks are case-insensitive.
+ */
+const NOTABLE_ABBREVIATIONS: Record<string, string[]> = {
+    'it-IT': [
+        'a.a.',
+        'a.C.',
+        'a.C.n.',
+        'AA. VV.',
+        'app.',
+        'art.',
+        'artt.',
+        'ca.',
+        'c.a.',
+        'cap.',
+        'capp.',
+        'c.c.',
+        'cfr.',
+        'cit.',
+        'citt.',
+        'c.s.',
+        'col.',
+        'coll.',
+        'cpv.',
+        'd.C.',
+        'd.C.n.',
+        'd.c.',
+        'diz.',
+        'dott.',
+        'ecc.',
+        'ed.',
+        'enc.',
+        'es.',
+        'ess.',
+        'f.',
+        'ff.',
+        'fig.',
+        'figg.',
+        'gg.',
+        'min.',
+        'ms.',
+        'mss.',
+        'n.',
+        'NB.',
+        'p.',
+        'pp.',
+        'pag.',
+        'par.',
+        'parr.',
+        'P.S.',
+        'PS.',
+        'prov.',
+        'q.b.',
+        'rif.',
+        's.',
+        'sg.',
+        'ss.',
+        'sgg.',
+        'sec.',
+        'Sig.',
+        'Sig.na',
+        'Sig.ra',
+        'tab.',
+        'tabb.',
+        'tav.',
+        'tavv.',
+        'trad.',
+        'tratt.',
+        'v.',
+        'vv.',
+        'vd.',
+        'vol.',
+        'voll.',
+    ],
+    DEFAULT_LANG: ['e.g.', 'etc.', 'i.e.', 'mr.', 'mrs.', 'ms.'],
+};
+
 /**
  * Speaker options.
  */
@@ -68,7 +148,7 @@ function getLang() {
         return navigator.language;
     }
 
-    return 'en-US';
+    return DEFAULT_LANG;
 }
 
 /**
@@ -259,7 +339,10 @@ export class Speaker extends Emitter<{
             root: this.#options.root,
             altAttributes: this.#options.altAttributes,
             sentenceEndRegexp: this.#options.sentenceEndRegexp,
-            notableAbbreviations: this.#options.notableAbbreviations,
+            notableAbbreviations: [
+                ...(this.#options.notableAbbreviations || []),
+                ...(NOTABLE_ABBREVIATIONS[this.#lang] || []),
+            ],
         });
 
         let token: SentenceToken | BlockToken | BoundaryToken | null = null;

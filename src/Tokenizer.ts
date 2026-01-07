@@ -1,85 +1,4 @@
 /**
- * Notable abbreviations that should not be treated as sentence endings.
- * All checks are case-insensitive.
- */
-const NOTABLE_ABBREVIATIONS = [
-    'a.a.',
-    'a.C.',
-    'a.C.n.',
-    'AA. VV.',
-    'app.',
-    'art.',
-    'artt.',
-    'ca.',
-    'c.a.',
-    'cap.',
-    'capp.',
-    'c.c.',
-    'cfr.',
-    'cit.',
-    'citt.',
-    'c.s.',
-    'col.',
-    'coll.',
-    'cpv.',
-    'd.C.',
-    'd.C.n.',
-    'd.c.',
-    'diz.',
-    'e.g.',
-    'ecc.',
-    'etc.',
-    'ed.',
-    'enc.',
-    'es.',
-    'ess.',
-    'f.',
-    'ff.',
-    'fig.',
-    'figg.',
-    'gg.',
-    'i.e.',
-    'min.',
-    'ms.',
-    'mss.',
-    'n.',
-    'NB.',
-    'P.S.',
-    'PS.',
-    'p.',
-    'pp.',
-    'pag.',
-    'par.',
-    'parr.',
-    'prov.',
-    'q.b.',
-    'rif.',
-    's.',
-    'sg.',
-    'ss.',
-    'sgg.',
-    'sec.',
-    'Sig.',
-    'dott.',
-    'mr.',
-    'mrs.',
-    'ms.',
-    'Sig.na',
-    'Sig.ra',
-    'tab.',
-    'tabb.',
-    'tav.',
-    'tavv.',
-    'trad.',
-    'tratt.',
-    'v.',
-    'vv.',
-    'vd.',
-    'vol.',
-    'voll.',
-];
-
-/**
  * Token types.
  */
 export const TokenType = {
@@ -476,7 +395,7 @@ export function* tokenize(
     const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
-    const notableAbbreviations = options.notableAbbreviations ?? NOTABLE_ABBREVIATIONS;
+    const notableAbbreviations = options.notableAbbreviations || [];
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
