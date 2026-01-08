@@ -1,0 +1,16 @@
+export default [
+    'adib.',
+    'dr.',
+    'et.al.',
+    'etab.',
+    'irud.',
+    'max.',
+    'min.',
+    'mr.',
+    'mrs.',
+    'ms.',
+    'or.',
+    's.a.',
+    'tel.',
+    'zenb.',
+] as string[];

@@ -1,3 +1,5 @@
+import * as abbrs from './abbreviations/index';
+
 /**
  * Token types.
  */
@@ -126,6 +128,22 @@ function checkDisplayBlock(element: Element) {
 }
 
 /**
+ * Check if a text chunk ends with a notable abbreviation.
+ * @param text The text to check.
+ * @param abbreviations The list of abbreviations to check against.
+ * @returns True if the text ends with a notable abbreviation.
+ */
+function endsWithNotableAbbreviation(text: string, abbreviations: string[]): boolean {
+    const trimmed = text.trim();
+    for (const abbr of abbreviations) {
+        if (trimmed.toLowerCase().endsWith(abbr.toLowerCase())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Check if node is hidden.
  * @param node The node to check.
  * @returns True if the node is hidden.
@@ -208,6 +226,7 @@ export interface TokenizerOptions {
     altAttributes?: string[];
     root?: string | Element;
     sentenceEndRegexp?: RegExp;
+    notableAbbreviations?: Record<string, string[]>;
 }
 
 /**
@@ -378,6 +397,7 @@ export function* tokenize(
     const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
+    const periodIsDelimiter = sentenceEndRegexp.test('.');
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
@@ -657,6 +677,7 @@ export function* tokenize(
 
             chunk += currentChunk;
 
+            const lang = getNodeLang(startNode, root);
             const token: BoundaryToken = {
                 type: TokenType.BOUNDARY,
                 text: chunk,
@@ -664,7 +685,7 @@ export function* tokenize(
                 startOffset,
                 endNode,
                 endOffset,
-                lang: getNodeLang(startNode, root),
+                lang,
                 voiceType: getNodeVoiceType(startNode),
                 voice: getNodeVoice(startNode),
             };
@@ -673,7 +694,23 @@ export function* tokenize(
             }
             if (collectSentences) {
                 currentSentenceTokens.push(token);
-                if (sentenceEndRegexp.test(chunk)) {
+                // If the pattern includes period and the chunk ends with a notable abbreviation, don't split
+                const matchesSentenceEnd = sentenceEndRegexp.test(chunk);
+                const notableAbbreviations = (() => {
+                    const tokenLang = lang?.toLowerCase() || 'en';
+                    const shortLang = tokenLang.split(/[-_]/)[0];
+
+                    return (
+                        options.notableAbbreviations?.[tokenLang] ??
+                        options.notableAbbreviations?.[shortLang] ??
+                        abbrs[shortLang as keyof typeof abbrs] ??
+                        abbrs.en
+                    );
+                })();
+                const endsWithAbbreviation =
+                    periodIsDelimiter && endsWithNotableAbbreviation(chunk, notableAbbreviations);
+
+                if (matchesSentenceEnd && !endsWithAbbreviation) {
                     yield {
                         type: TokenType.SENTENCE,
                         startNode: currentSentenceTokens[0].startNode,

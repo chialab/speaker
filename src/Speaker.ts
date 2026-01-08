@@ -39,6 +39,11 @@ export interface SpeakerOptions {
      * Regular expression for sentence ending detection.
      */
     sentenceEndRegexp?: RegExp;
+    /**
+     * List of notable abbreviations that should not be treated as sentence endings.
+     * Only used when sentenceEndRegexp includes period as delimiter.
+     */
+    notableAbbreviations?: Record<string, string[]>;
 }
 
 /**
@@ -254,6 +259,7 @@ export class Speaker extends Emitter<{
             root: this.#options.root,
             altAttributes: this.#options.altAttributes,
             sentenceEndRegexp: this.#options.sentenceEndRegexp,
+            notableAbbreviations: this.#options.notableAbbreviations,
         });
 
         let token: SentenceToken | BlockToken | BoundaryToken | null = null;
