@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.2.2
+
+### Patch Changes
+
+- ae780a2: Handle notable abbreviations on tokenizer
+
 ## 3.2.1
 
 ### Patch Changes
