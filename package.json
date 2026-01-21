@@ -31,8 +31,9 @@
   "author": "Chialab <dev@chialab.io> (https://www.chialab.it)",
   "scripts": {
     "prepare": "node scripts/prepare.js && biome check --fix src/voices/",
-    "dev": "yarn prepare && vite",
+    "dev": "vite",
     "build": "rimraf 'dist' 'type' && yarn prepare && tsc && esbuild speaker=src/index.ts --outdir=dist --format=esm --bundle --packages=external --sourcemap",
+    "build:demo": "vite build",
     "test": "vitest run",
     "lint": "biome check ."
   },
