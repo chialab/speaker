@@ -3,6 +3,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+    base: '/speaker/',
     plugins: [basicSsl()],
     resolve: {
         alias: {
