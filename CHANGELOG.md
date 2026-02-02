@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.2.3
+
+### Patch Changes
+
+- 0c488a6: Correctly check for abbreviation boundaries.
+
 ## 3.2.2
 
 ### Patch Changes
