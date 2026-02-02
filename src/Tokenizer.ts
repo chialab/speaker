@@ -134,9 +134,10 @@ function checkDisplayBlock(element: Element) {
  * @returns True if the text ends with a notable abbreviation.
  */
 function endsWithNotableAbbreviation(text: string, abbreviations: string[]): boolean {
-    const trimmed = text.trim();
+    const normalizedText = text.trim().toLowerCase();
     for (const abbr of abbreviations) {
-        if (trimmed.toLowerCase().endsWith(abbr.toLowerCase())) {
+        const normalizedAbbr = abbr.toLowerCase();
+        if (normalizedText === normalizedAbbr || normalizedText.endsWith(` ${normalizedAbbr}`)) {
             return true;
         }
     }
