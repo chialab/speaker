@@ -1,5 +1,15 @@
 # @chialab/speaker
 
+## 3.3.0
+
+### Minor Changes
+
+- 07a7147: Introducing `textFilterRegexp` and `textFilterReplacement` options.
+
+### Patch Changes
+
+- 9a2c28c: Fix highlights glitches in Safari.
+
 ## 3.2.3
 
 ### Patch Changes
