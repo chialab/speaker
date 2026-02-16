@@ -154,7 +154,7 @@ export class Speaker extends Emitter<{
 }> {
     #rate: number;
     #lang: string;
-    #element: Element;
+    #element: HTMLElement;
     #adapter: Adapter;
     #options: SpeakerOptions;
     #range: Range | null = null;
@@ -174,7 +174,7 @@ export class Speaker extends Emitter<{
      * @param root The root element of the document to speak.
      * @param options A set of options for the library.
      */
-    constructor(root: Element, options: Partial<SpeakerOptions> = {}) {
+    constructor(root: HTMLElement, options: Partial<SpeakerOptions> = {}) {
         super();
 
         this.#element = root;
@@ -455,52 +455,78 @@ export class Speaker extends Emitter<{
             CSS.highlights.set('speaker-boundaries-highlight', boundariesHighlight);
         }
 
+        /**
+         * Safari glitches if highlights are cleared and added in the same frame, so we need to force a repaint between them.
+         */
+        const forceRepaint = (fn: () => void) => {
+            this.#element.style.willChange = 'transform';
+            requestAnimationFrame(() => {
+                fn();
+                this.#element.style.removeProperty('will-change');
+            });
+        };
+
         this.on('start', () => {
-            boundariesHighlight?.clear();
-            sentencesHighlight?.clear();
-            blocksHighlight?.clear();
+            forceRepaint(() => {
+                boundariesHighlight?.clear();
+                sentencesHighlight?.clear();
+                blocksHighlight?.clear();
+            });
         });
 
         this.on('cancel', () => {
-            boundariesHighlight?.clear();
-            sentencesHighlight?.clear();
-            blocksHighlight?.clear();
+            forceRepaint(() => {
+                boundariesHighlight?.clear();
+                sentencesHighlight?.clear();
+                blocksHighlight?.clear();
+            });
         });
 
         this.on('end', () => {
-            boundariesHighlight?.clear();
-            sentencesHighlight?.clear();
-            blocksHighlight?.clear();
+            forceRepaint(() => {
+                boundariesHighlight?.clear();
+                sentencesHighlight?.clear();
+                blocksHighlight?.clear();
+            });
         });
 
         this.on('error', () => {
-            boundariesHighlight?.clear();
-            sentencesHighlight?.clear();
-            blocksHighlight?.clear();
+            forceRepaint(() => {
+                boundariesHighlight?.clear();
+                sentencesHighlight?.clear();
+                blocksHighlight?.clear();
+            });
         });
 
         let lastBlock: BlockToken | null = null;
         let lastSentence: SentenceToken | null = null;
         this.on('boundary', ({ token, sentence, block }) => {
-            if (lastBlock !== block) {
-                blocksHighlight?.clear();
-                sentencesHighlight?.clear();
+            let addBlock = false;
+            let addSentence = false;
+            forceRepaint(() => {
+                if (lastBlock !== block) {
+                    blocksHighlight?.clear();
+                    sentencesHighlight?.clear();
+                    addBlock = !!block;
+                    addSentence = !!sentence;
+                    lastBlock = block;
+                    lastSentence = sentence;
+                } else if (lastSentence !== sentence) {
+                    sentencesHighlight?.clear();
+                    addSentence = !!sentence;
+                    lastSentence = sentence;
+                }
                 boundariesHighlight?.clear();
-                if (block) {
+                if (addBlock && block) {
                     blocksHighlight?.add(createRange(...block.tokens));
                 }
-                lastBlock = block;
-            }
-            if (lastSentence !== sentence) {
-                sentencesHighlight?.clear();
-                boundariesHighlight?.clear();
-                if (sentence) {
+                if (addSentence && sentence) {
                     sentencesHighlight?.add(createRange(...sentence.tokens));
                 }
-                lastSentence = sentence;
-            }
-            boundariesHighlight?.clear();
-            boundariesHighlight?.add(createRange(token));
+                if (token) {
+                    boundariesHighlight?.add(createRange(token));
+                }
+            });
         });
     }
 }
