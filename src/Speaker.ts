@@ -40,6 +40,14 @@ export interface SpeakerOptions {
      */
     sentenceEndRegexp?: RegExp;
     /**
+     * Regular expression to filter out unwanted characters from the text content of tokens.
+     */
+    textFilterRegexp?: RegExp;
+    /**
+     * Replacement for the filtered out characters by textFilterRegexp. Can be a string or a function.
+     */
+    textFilterReplacement?: string | ((substring: string, ...args: any[]) => string);
+    /**
      * List of notable abbreviations that should not be treated as sentence endings.
      * Only used when sentenceEndRegexp includes period as delimiter.
      */
@@ -259,6 +267,8 @@ export class Speaker extends Emitter<{
             root: this.#options.root,
             altAttributes: this.#options.altAttributes,
             sentenceEndRegexp: this.#options.sentenceEndRegexp,
+            textFilterRegexp: this.#options.textFilterRegexp,
+            textFilterReplacement: this.#options.textFilterReplacement,
             notableAbbreviations: this.#options.notableAbbreviations,
         });
 

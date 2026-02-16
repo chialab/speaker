@@ -227,6 +227,8 @@ export interface TokenizerOptions {
     altAttributes?: string[];
     root?: string | Element;
     sentenceEndRegexp?: RegExp;
+    textFilterRegexp?: RegExp;
+    textFilterReplacement?: string | ((substring: string) => string);
     notableAbbreviations?: Record<string, string[]>;
 }
 
@@ -398,6 +400,10 @@ export function* tokenize(
     const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
+    const textFilterRegexp = options.textFilterRegexp ?? /(?![.,:;\-!?'’])\p{P}/gu;
+    const textFilterReplacement = (options.textFilterReplacement ?? ',') as Parameters<
+        typeof String.prototype.replace
+    >[1];
     const periodIsDelimiter = sentenceEndRegexp.test('.');
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
@@ -483,7 +489,7 @@ export function* tokenize(
 
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: chunk,
+                        text: chunk.replace(textFilterRegexp, textFilterReplacement),
                         startNode,
                         startOffset,
                         endNode,
@@ -540,7 +546,7 @@ export function* tokenize(
                     range.selectNode(currentNode);
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: textValue,
+                        text: textValue.replace(textFilterRegexp, textFilterReplacement),
                         startNode: range.startContainer,
                         startOffset: range.startOffset,
                         endNode: range.endContainer,
@@ -598,7 +604,7 @@ export function* tokenize(
 
                 const token: BoundaryToken = {
                     type: TokenType.BOUNDARY,
-                    text: chunk,
+                    text: chunk.replace(textFilterRegexp, textFilterReplacement),
                     startNode,
                     startOffset,
                     endNode,
@@ -681,7 +687,7 @@ export function* tokenize(
             const lang = getNodeLang(startNode, root);
             const token: BoundaryToken = {
                 type: TokenType.BOUNDARY,
-                text: chunk,
+                text: chunk.replace(textFilterRegexp, textFilterReplacement),
                 startNode,
                 startOffset,
                 endNode,
@@ -748,7 +754,7 @@ export function* tokenize(
 
         const token: BoundaryToken = {
             type: TokenType.BOUNDARY,
-            text: chunk,
+            text: chunk.replace(textFilterRegexp, textFilterReplacement),
             startNode,
             startOffset,
             endNode,
