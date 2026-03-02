@@ -1,6 +1,30 @@
 import { Emitter, type Event } from './Emitter';
 import type { BoundaryToken } from './Tokenizer';
 
+/**
+ * Map of comparison symbols (< and >) to spoken words per language.
+ */
+export type ComparisonSymbolsWords = Record<string, { '<': string; '>': string; }>;
+
+/** 
+ * Default regex to match comparison symbols (< and >) in the text.
+ * @example /\s([<>])(?=\s|,|$)/g
+ */
+const DEFAULT_COMPARISON_SYMBOLS_REGEXP = /\s([<>])(?=\s|,|$)/g;
+
+/** 
+ * Default comparison symbols words. 
+ * @example { en: { '<': 'less than', '>': 'greater than' } }
+ */
+const DEFAULT_COMPARISON_SYMBOLS_WORDS: ComparisonSymbolsWords = {
+    en: { '<': 'less than', '>': 'greater than' },
+    it: { '<': 'minore', '>': 'maggiore' },
+    es: { '<': 'menor que', '>': 'mayor que' },
+    fr: { '<': 'inférieur à', '>': 'supérieur à' },
+    de: { '<': 'kleiner als', '>': 'größer als' },
+    pt: { '<': 'menor que', '>': 'maior que' },
+};
+
 export interface UtteranceToken {
     /**
      * The token.
@@ -45,15 +69,8 @@ export class Utterance extends Emitter<{
     #started = false;
     #ended = false;
     #current: BoundaryToken | null = null;
-
-    static #comparisonWords: Record<string, { '<': string; '>': string }> = {
-        it: { '<': 'minore', '>': 'maggiore' },
-        en: { '<': 'less than', '>': 'greater than' },
-        es: { '<': 'menor que', '>': 'mayor que' },
-        fr: { '<': 'inférieur à', '>': 'supérieur à' },
-        de: { '<': 'kleiner als', '>': 'größer als' },
-        pt: { '<': 'menor que', '>': 'maior que' },
-    };
+    #comparisonSymbolsRegexp?: RegExp;
+    #comparisonSymbolsWords?: ComparisonSymbolsWords;
 
     /**
      * Create an Utterance instance.
@@ -63,12 +80,14 @@ export class Utterance extends Emitter<{
      * @param voiceType The utterance voice.
      * @param voices The utterance voices.
      */
-    constructor(rate: number, lang: string, voiceType?: string | null, voices?: string | null) {
+    constructor(rate: number, lang: string, voiceType?: string | null, voices?: string | null, comparisonSymbolsRegexp?: RegExp, comparisonSymbolsWords?: ComparisonSymbolsWords) {
         super();
         this.#rate = rate;
         this.#lang = lang;
         this.#voiceType = voiceType || null;
         this.#voices = voices || null;
+        this.#comparisonSymbolsRegexp = comparisonSymbolsRegexp ?? DEFAULT_COMPARISON_SYMBOLS_REGEXP;
+        this.#comparisonSymbolsWords = comparisonSymbolsWords|| DEFAULT_COMPARISON_SYMBOLS_WORDS;
     }
 
     /**
@@ -148,16 +167,27 @@ export class Utterance extends Emitter<{
         }
     }
 
-    /** Expand < and > to words so TTS reads them (e.g. Italian skips raw chars). */
+    /** Expand < and > to words so TTS reads them properly. */
     #expandComparisonSymbols(text: string): string {
-        if (!text || typeof text !== 'string') {
+        const words = this.#comparisonSymbolsWords;
+        if (!text || typeof text !== 'string' || !words) {
             return text;
         }
 
         const base = (this.#lang || '').toLowerCase().split(/[-_]/)[0];
-        const words = Utterance.#comparisonWords[base] ?? Utterance.#comparisonWords.en;
+        const langWords = words[base] ?? words['en'];
 
-        return text.replace(/</g, words['<']).replace(/>/g, words['>']);
+        if (text === '>') {
+            return langWords['>'];
+        }
+        if (text === '<') {
+            return langWords['<'];
+        }
+
+        const regex = this.#comparisonSymbolsRegexp ?? DEFAULT_COMPARISON_SYMBOLS_REGEXP;
+        return text.replace(regex, (match) =>
+            match.replace(/</g, langWords['<']).replace(/>/g, langWords['>'])
+        );
     }
 
     /**

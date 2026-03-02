@@ -9,7 +9,7 @@ import {
     TokenType,
     TokenWalker,
 } from './Tokenizer';
-import { Utterance } from './Utterance';
+import { Utterance, type ComparisonSymbolsWords } from './Utterance';
 
 /**
  * Speaker options.
@@ -52,6 +52,14 @@ export interface SpeakerOptions {
      * Only used when sentenceEndRegexp includes period as delimiter.
      */
     notableAbbreviations?: Record<string, string[]>;
+    /**
+     * Regular expression to match comparison symbols (< and >) in the text.
+     */
+    comparisonSymbolsRegexp?: RegExp;
+    /**
+     * Map of comparison symbols (< and >) to spoken words per language.
+     */
+    comparisonSymbolsWords?: ComparisonSymbolsWords;
 }
 
 /**
@@ -302,7 +310,7 @@ export class Speaker extends Emitter<{
                             currentUtterance.lang !== language ||
                             currentUtterance.voices !== voices
                         ) {
-                            currentUtterance = new Utterance(this.#rate, language, childToken.voiceType, voices);
+                            currentUtterance = new Utterance(this.#rate, language, childToken.voiceType, voices, this.#options.comparisonSymbolsRegexp, this.#options.comparisonSymbolsWords);
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
                                 this.#currentBoundary = currentToken as BoundaryToken;
