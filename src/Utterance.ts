@@ -46,6 +46,15 @@ export class Utterance extends Emitter<{
     #ended = false;
     #current: BoundaryToken | null = null;
 
+    static #comparisonWords: Record<string, { '<': string; '>': string }> = {
+        it: { '<': 'minore', '>': 'maggiore' },
+        en: { '<': 'less than', '>': 'greater than' },
+        es: { '<': 'menor que', '>': 'mayor que' },
+        fr: { '<': 'inférieur à', '>': 'supérieur à' },
+        de: { '<': 'kleiner als', '>': 'größer als' },
+        pt: { '<': 'menor que', '>': 'maior que' },
+    };
+
     /**
      * Create an Utterance instance.
      * @param tokens A list of tokens contained by the utterance.
@@ -124,7 +133,8 @@ export class Utterance extends Emitter<{
      */
     addToken(token: BoundaryToken): void {
         const index = this.#text ? this.#text.length + 1 : this.#text.length;
-        const text = token.text.trim();
+        let text = token.text.trim();
+        text = this.#expandComparisonSymbols(text);
 
         this.#tokens.push({
             token,
@@ -136,6 +146,18 @@ export class Utterance extends Emitter<{
         } else {
             this.#text = text;
         }
+    }
+
+    /** Expand < and > to words so TTS reads them (e.g. Italian skips raw chars). */
+    #expandComparisonSymbols(text: string): string {
+        if (!text || typeof text !== 'string') {
+            return text;
+        }
+
+        const base = (this.#lang || '').toLowerCase().split(/[-_]/)[0];
+        const words = Utterance.#comparisonWords[base] ?? Utterance.#comparisonWords.en;
+
+        return text.replace(/</g, words['<']).replace(/>/g, words['>']);
     }
 
     /**
