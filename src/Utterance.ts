@@ -6,14 +6,14 @@ import type { BoundaryToken } from './Tokenizer';
  */
 export type ComparisonSymbolsWords = Record<string, Record<string, string>>;
 
-/** 
+/**
  * Default regex to match comparison symbols (< and >) in the text.
  * @example /\s([<>])(?=\s|,|$)/g
  */
 const DEFAULT_COMPARISON_SYMBOLS_REGEXP = /\s([<>])(?=\s|,|$)/g;
 
-/** 
- * Default comparison symbols words. 
+/**
+ * Default comparison symbols words.
  * @example { en: { '<': 'less than', '>': 'greater than' } }
  */
 const DEFAULT_COMPARISON_SYMBOLS_WORDS: ComparisonSymbolsWords = {
@@ -80,14 +80,21 @@ export class Utterance extends Emitter<{
      * @param voiceType The utterance voice.
      * @param voices The utterance voices.
      */
-    constructor(rate: number, lang: string, voiceType?: string | null, voices?: string | null, comparisonSymbolsRegexp?: RegExp, comparisonSymbolsWords?: ComparisonSymbolsWords) {
+    constructor(
+        rate: number,
+        lang: string,
+        voiceType?: string | null,
+        voices?: string | null,
+        comparisonSymbolsRegexp?: RegExp,
+        comparisonSymbolsWords?: ComparisonSymbolsWords
+    ) {
         super();
         this.#rate = rate;
         this.#lang = lang;
         this.#voiceType = voiceType || null;
         this.#voices = voices || null;
         this.#comparisonSymbolsRegexp = comparisonSymbolsRegexp ?? DEFAULT_COMPARISON_SYMBOLS_REGEXP;
-        this.#comparisonSymbolsWords = comparisonSymbolsWords|| DEFAULT_COMPARISON_SYMBOLS_WORDS;
+        this.#comparisonSymbolsWords = comparisonSymbolsWords || DEFAULT_COMPARISON_SYMBOLS_WORDS;
     }
 
     /**

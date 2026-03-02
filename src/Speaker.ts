@@ -9,7 +9,7 @@ import {
     TokenType,
     TokenWalker,
 } from './Tokenizer';
-import { Utterance, type ComparisonSymbolsWords } from './Utterance';
+import { type ComparisonSymbolsWords, Utterance } from './Utterance';
 
 /**
  * Speaker options.
@@ -310,7 +310,14 @@ export class Speaker extends Emitter<{
                             currentUtterance.lang !== language ||
                             currentUtterance.voices !== voices
                         ) {
-                            currentUtterance = new Utterance(this.#rate, language, childToken.voiceType, voices, this.#options.comparisonSymbolsRegexp, this.#options.comparisonSymbolsWords);
+                            currentUtterance = new Utterance(
+                                this.#rate,
+                                language,
+                                childToken.voiceType,
+                                voices,
+                                this.#options.comparisonSymbolsRegexp,
+                                this.#options.comparisonSymbolsWords
+                            );
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
                                 this.#currentBoundary = currentToken as BoundaryToken;
