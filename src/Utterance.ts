@@ -4,7 +4,7 @@ import type { BoundaryToken } from './Tokenizer';
 /**
  * Map of comparison symbols (< and >) to spoken words per language.
  */
-export type ComparisonSymbolsWords = Record<string, { '<': string; '>': string; }>;
+export type ComparisonSymbolsWords = Record<string, Record<string, string>>;
 
 /** 
  * Default regex to match comparison symbols (< and >) in the text.
@@ -169,25 +169,27 @@ export class Utterance extends Emitter<{
 
     /** Expand < and > to words so TTS reads them properly. */
     #expandComparisonSymbols(text: string): string {
-        const words = this.#comparisonSymbolsWords;
-        if (!text || typeof text !== 'string' || !words) {
+        const comparisonWords = this.#comparisonSymbolsWords;
+        if (!comparisonWords || typeof text !== 'string' || !text) {
             return text;
         }
 
-        const base = (this.#lang || '').toLowerCase().split(/[-_]/)[0];
-        const langWords = words[base] ?? words['en'];
+        const langBase = (this.#lang || '').split(/[-_]/)[0].toLowerCase();
+        const wordsMap = comparisonWords[langBase] || comparisonWords['en'];
 
-        if (text === '>') {
-            return langWords['>'];
-        }
-        if (text === '<') {
-            return langWords['<'];
+        if (wordsMap[text]) {
+            return wordsMap[text];
         }
 
         const regex = this.#comparisonSymbolsRegexp ?? DEFAULT_COMPARISON_SYMBOLS_REGEXP;
-        return text.replace(regex, (match) =>
-            match.replace(/</g, langWords['<']).replace(/>/g, langWords['>'])
-        );
+        return text.replace(regex, (_match, p1) => {
+            const symbol = p1 as keyof typeof wordsMap;
+            if (!wordsMap[symbol]) {
+                return symbol;
+            }
+
+            return wordsMap[symbol];
+        });
     }
 
     /**
