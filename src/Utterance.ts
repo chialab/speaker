@@ -93,7 +93,7 @@ export class Utterance extends Emitter<{
         this.#lang = lang;
         this.#voiceType = voiceType || null;
         this.#voices = voices || null;
-        this.#comparisonSymbolsRegexp = comparisonSymbolsRegexp ?? DEFAULT_COMPARISON_SYMBOLS_REGEXP;
+        this.#comparisonSymbolsRegexp = comparisonSymbolsRegexp || DEFAULT_COMPARISON_SYMBOLS_REGEXP;
         this.#comparisonSymbolsWords = comparisonSymbolsWords || DEFAULT_COMPARISON_SYMBOLS_WORDS;
     }
 
