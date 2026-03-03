@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.5.0
+
+### Minor Changes
+
+- bc49a09: Rename `comparisonSymbolsWords` to `symbolsToWords`.
+
 ## 3.4.0
 
 ### Minor Changes
