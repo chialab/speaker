@@ -12,7 +12,7 @@ import {
 import { Utterance } from './Utterance';
 
 /** Default map: symbol -> spoken word per language. */
-const DEFAULT_COMPARISON_SYMBOLS_WORDS: Record<string, Record<string, string>> = {
+const DEFAULT_SYMBOLS_TO_WORDS: Record<string, Record<string, string>> = {
     en: { '<': 'less than', '>': 'greater than' },
     it: { '<': 'minore', '>': 'maggiore' },
     es: { '<': 'menor que', '>': 'mayor que' },
@@ -65,7 +65,7 @@ export interface SpeakerOptions {
     /**
      * Map per language of symbol -> spoken word (e.g. { en: { '<': 'less than', '>': 'greater than' } }).
      */
-    comparisonSymbolsWords?: Record<string, Record<string, string>>;
+    symbolsToWords?: Record<string, Record<string, string>>;
 }
 
 /**
@@ -284,7 +284,7 @@ export class Speaker extends Emitter<{
             textFilterRegexp: this.#options.textFilterRegexp,
             textFilterReplacement: this.#options.textFilterReplacement,
             notableAbbreviations: this.#options.notableAbbreviations,
-            comparisonSymbolsWords: this.#options.comparisonSymbolsWords ?? DEFAULT_COMPARISON_SYMBOLS_WORDS,
+            symbolsToWords: this.#options.symbolsToWords ?? DEFAULT_SYMBOLS_TO_WORDS,
             defaultLang: this.#lang,
         });
 

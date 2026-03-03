@@ -94,13 +94,13 @@ function createCheckFunction(rules?: CheckRule, deep = false): CheckFunction {
 }
 
 /**
- * Substitute comparison symbols with spoken words using the given map.
+ * Substitute symbols with spoken words using the given map.
  * @param text The text to substitute.
  * @param lang The language of the text.
- * @param map The map of comparison symbols to spoken words.
+ * @param map The map of symbols to spoken words.
  * @returns The substituted text.
  */
-function substituteComparisonSymbols(text: string, lang: string, map?: Record<string, Record<string, string>>): string {
+function substituteSymbols(text: string, lang: string, map?: Record<string, Record<string, string>>): string {
     if (!map) {
         return text;
     }
@@ -245,7 +245,7 @@ export interface TokenizerOptions {
     textFilterRegexp?: RegExp;
     textFilterReplacement?: string | ((substring: string) => string);
     notableAbbreviations?: Record<string, string[]>;
-    comparisonSymbolsWords?: Record<string, Record<string, string>>;
+    symbolsToWords?: Record<string, Record<string, string>>;
     defaultLang?: string;
 }
 
@@ -426,7 +426,7 @@ export function* tokenize(
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
     const defaultLang = options.defaultLang || 'en';
-    const comparisonSymbolsWords = options.comparisonSymbolsWords;
+    const symbolsToWords = options.symbolsToWords;
 
     let chunk = '';
 
@@ -510,7 +510,7 @@ export function* tokenize(
                     const lang = getNodeLang(startNode, root);
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: substituteComparisonSymbols(rawText, lang || defaultLang, comparisonSymbolsWords),
+                        text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
                         startNode,
                         startOffset,
                         endNode,
@@ -569,7 +569,7 @@ export function* tokenize(
                     const lang = getNodeLang(currentNode, root);
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: substituteComparisonSymbols(rawText, lang || defaultLang, comparisonSymbolsWords),
+                        text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
                         startNode: range.startContainer,
                         startOffset: range.startOffset,
                         endNode: range.endContainer,
@@ -629,7 +629,7 @@ export function* tokenize(
                 const lang = getNodeLang(startNode, root);
                 const token: BoundaryToken = {
                     type: TokenType.BOUNDARY,
-                    text: substituteComparisonSymbols(rawText, lang || defaultLang, comparisonSymbolsWords),
+                    text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
                     startNode,
                     startOffset,
                     endNode,
@@ -713,7 +713,7 @@ export function* tokenize(
             const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
             const token: BoundaryToken = {
                 type: TokenType.BOUNDARY,
-                text: substituteComparisonSymbols(rawText, lang || defaultLang, comparisonSymbolsWords),
+                text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
                 startNode,
                 startOffset,
                 endNode,
@@ -782,7 +782,7 @@ export function* tokenize(
         const lang = getNodeLang(startNode, root);
         const token: BoundaryToken = {
             type: TokenType.BOUNDARY,
-            text: substituteComparisonSymbols(rawText, lang || defaultLang, comparisonSymbolsWords),
+            text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
             startNode,
             startOffset,
             endNode,
