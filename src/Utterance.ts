@@ -1,30 +1,6 @@
 import { Emitter, type Event } from './Emitter';
 import type { BoundaryToken } from './Tokenizer';
 
-/**
- * Map of comparison symbols (< and >) to spoken words per language.
- */
-export type ComparisonSymbolsWords = Record<string, Record<string, string>>;
-
-/**
- * Default regex to match comparison symbols (< and >) in the text.
- * @example /\s([<>])(?=\s|,|$)/g
- */
-const DEFAULT_COMPARISON_SYMBOLS_REGEXP = /\s([<>])(?=\s|,|$)/g;
-
-/**
- * Default comparison symbols words.
- * @example { en: { '<': 'less than', '>': 'greater than' } }
- */
-const DEFAULT_COMPARISON_SYMBOLS_WORDS: ComparisonSymbolsWords = {
-    en: { '<': 'less than', '>': 'greater than' },
-    it: { '<': 'minore', '>': 'maggiore' },
-    es: { '<': 'menor que', '>': 'mayor que' },
-    fr: { '<': 'inférieur à', '>': 'supérieur à' },
-    de: { '<': 'kleiner als', '>': 'größer als' },
-    pt: { '<': 'menor que', '>': 'maior que' },
-};
-
 export interface UtteranceToken {
     /**
      * The token.
@@ -69,8 +45,6 @@ export class Utterance extends Emitter<{
     #started = false;
     #ended = false;
     #current: BoundaryToken | null = null;
-    #comparisonSymbolsRegexp?: RegExp;
-    #comparisonSymbolsWords?: ComparisonSymbolsWords;
 
     /**
      * Create an Utterance instance.
@@ -80,21 +54,12 @@ export class Utterance extends Emitter<{
      * @param voiceType The utterance voice.
      * @param voices The utterance voices.
      */
-    constructor(
-        rate: number,
-        lang: string,
-        voiceType?: string | null,
-        voices?: string | null,
-        comparisonSymbolsRegexp?: RegExp,
-        comparisonSymbolsWords?: ComparisonSymbolsWords
-    ) {
+    constructor(rate: number, lang: string, voiceType?: string | null, voices?: string | null) {
         super();
         this.#rate = rate;
         this.#lang = lang;
         this.#voiceType = voiceType || null;
         this.#voices = voices || null;
-        this.#comparisonSymbolsRegexp = comparisonSymbolsRegexp || DEFAULT_COMPARISON_SYMBOLS_REGEXP;
-        this.#comparisonSymbolsWords = comparisonSymbolsWords || DEFAULT_COMPARISON_SYMBOLS_WORDS;
     }
 
     /**
@@ -159,8 +124,7 @@ export class Utterance extends Emitter<{
      */
     addToken(token: BoundaryToken): void {
         const index = this.#text ? this.#text.length + 1 : this.#text.length;
-        let text = token.text.trim();
-        text = this.#expandComparisonSymbols(text);
+        const text = token.text.trim();
 
         this.#tokens.push({
             token,
@@ -172,31 +136,6 @@ export class Utterance extends Emitter<{
         } else {
             this.#text = text;
         }
-    }
-
-    /** Expand < and > to words so TTS reads them properly. */
-    #expandComparisonSymbols(text: string): string {
-        const comparisonWords = this.#comparisonSymbolsWords;
-        if (!comparisonWords || typeof text !== 'string' || !text) {
-            return text;
-        }
-
-        const langBase = (this.#lang || '').split(/[-_]/)[0].toLowerCase();
-        const wordsMap = comparisonWords[langBase] || comparisonWords['en'];
-
-        if (wordsMap[text]) {
-            return wordsMap[text];
-        }
-
-        const regex = this.#comparisonSymbolsRegexp ?? DEFAULT_COMPARISON_SYMBOLS_REGEXP;
-        return text.replace(regex, (_match, p1) => {
-            const symbol = p1 as keyof typeof wordsMap;
-            if (!wordsMap[symbol]) {
-                return symbol;
-            }
-
-            return wordsMap[symbol];
-        });
     }
 
     /**

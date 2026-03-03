@@ -9,7 +9,17 @@ import {
     TokenType,
     TokenWalker,
 } from './Tokenizer';
-import { type ComparisonSymbolsWords, Utterance } from './Utterance';
+import { Utterance } from './Utterance';
+
+/** Default map: symbol -> spoken word per language. */
+const DEFAULT_COMPARISON_SYMBOLS_WORDS: Record<string, Record<string, string>> = {
+    en: { '<': 'less than', '>': 'greater than', ',': '' },
+    it: { '<': 'minore', '>': 'maggiore', ',': '' },
+    es: { '<': 'menor que', '>': 'mayor que', ',': '' },
+    fr: { '<': 'inférieur à', '>': 'supérieur à', ',': '' },
+    de: { '<': 'kleiner als', '>': 'größer als', ',': '' },
+    pt: { '<': 'menor que', '>': 'maior que', ',': '' },
+};
 
 /**
  * Speaker options.
@@ -53,13 +63,9 @@ export interface SpeakerOptions {
      */
     notableAbbreviations?: Record<string, string[]>;
     /**
-     * Regular expression to match comparison symbols (< and >) in the text.
+     * Map per language of symbol -> spoken word (e.g. { en: { '<': 'less than', '>': 'greater than' } }).
      */
-    comparisonSymbolsRegexp?: RegExp;
-    /**
-     * Map of comparison symbols (< and >) to spoken words per language.
-     */
-    comparisonSymbolsWords?: ComparisonSymbolsWords;
+    comparisonSymbolsWords?: Record<string, Record<string, string>>;
 }
 
 /**
@@ -278,6 +284,7 @@ export class Speaker extends Emitter<{
             textFilterRegexp: this.#options.textFilterRegexp,
             textFilterReplacement: this.#options.textFilterReplacement,
             notableAbbreviations: this.#options.notableAbbreviations,
+            comparisonSymbolsWords: this.#options.comparisonSymbolsWords ?? DEFAULT_COMPARISON_SYMBOLS_WORDS,
         });
 
         let token: SentenceToken | BlockToken | BoundaryToken | null = null;
@@ -310,14 +317,7 @@ export class Speaker extends Emitter<{
                             currentUtterance.lang !== language ||
                             currentUtterance.voices !== voices
                         ) {
-                            currentUtterance = new Utterance(
-                                this.#rate,
-                                language,
-                                childToken.voiceType,
-                                voices,
-                                this.#options.comparisonSymbolsRegexp,
-                                this.#options.comparisonSymbolsWords
-                            );
+                            currentUtterance = new Utterance(this.#rate, language, childToken.voiceType, voices);
                             currentUtterance.on('boundary', (currentToken) => {
                                 // a boundary had been met.
                                 this.#currentBoundary = currentToken as BoundaryToken;
@@ -333,7 +333,7 @@ export class Speaker extends Emitter<{
                             queue.push(currentUtterance);
                         }
 
-                        if (currentUtterance.length || childToken.text.trim()) {
+                        if (childToken.text.trim()) {
                             currentUtterance.addToken(childToken);
                         }
                     }
