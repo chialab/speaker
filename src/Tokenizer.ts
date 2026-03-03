@@ -98,17 +98,19 @@ function createCheckFunction(rules?: CheckRule, deep = false): CheckFunction {
  * @param text The text to substitute.
  * @param lang The language of the text.
  * @param map The map of comparison symbols to spoken words.
+ * @param defaultLang Default language when lang is null (e.g. Speaker/voice lang).
  * @returns The substituted text.
  */
 function substituteComparisonSymbols(
     text: string,
     lang: string | null,
-    map: Record<string, Record<string, string>> | undefined
+    map: Record<string, Record<string, string>> | undefined,
+    defaultLang?: string
 ): string {
     if (!map || text === '') {
         return text;
     }
-    const langBase = (lang || 'en').split(/[-_]/)[0].toLowerCase();
+    const langBase = (lang || defaultLang || 'en').split(/[-_]/)[0].toLowerCase();
     const words = map[langBase] ?? map['en'];
     if (!words || words[text] === undefined) {
         return text;
@@ -255,6 +257,7 @@ export interface TokenizerOptions {
     textFilterReplacement?: string | ((substring: string) => string);
     notableAbbreviations?: Record<string, string[]>;
     comparisonSymbolsWords?: Record<string, Record<string, string>>;
+    defaultLang?: string;
 }
 
 /**
@@ -433,6 +436,7 @@ export function* tokenize(
     const collectBoundaries = !!(whatToShow & TokenType.BOUNDARY);
     const collectSentences = !!(whatToShow & TokenType.SENTENCE);
     const collectBlocks = !!(whatToShow & TokenType.BLOCK);
+    const defaultLang = options.defaultLang;
 
     let chunk = '';
 
@@ -516,7 +520,7 @@ export function* tokenize(
                     const lang = getNodeLang(startNode, root);
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords),
+                        text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords, defaultLang),
                         startNode,
                         startOffset,
                         endNode,
@@ -575,7 +579,7 @@ export function* tokenize(
                     const lang = getNodeLang(currentNode, root);
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords),
+                        text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords, defaultLang),
                         startNode: range.startContainer,
                         startOffset: range.startOffset,
                         endNode: range.endContainer,
@@ -635,7 +639,7 @@ export function* tokenize(
                 const lang = getNodeLang(startNode, root);
                 const token: BoundaryToken = {
                     type: TokenType.BOUNDARY,
-                    text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords),
+                    text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords, defaultLang),
                     startNode,
                     startOffset,
                     endNode,
@@ -719,7 +723,7 @@ export function* tokenize(
             const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
             const token: BoundaryToken = {
                 type: TokenType.BOUNDARY,
-                text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords),
+                text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords, defaultLang),
                 startNode,
                 startOffset,
                 endNode,
@@ -788,7 +792,7 @@ export function* tokenize(
         const lang = getNodeLang(startNode, root);
         const token: BoundaryToken = {
             type: TokenType.BOUNDARY,
-            text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords),
+            text: substituteComparisonSymbols(rawText, lang, options.comparisonSymbolsWords, defaultLang),
             startNode,
             startOffset,
             endNode,

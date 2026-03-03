@@ -285,6 +285,7 @@ export class Speaker extends Emitter<{
             textFilterReplacement: this.#options.textFilterReplacement,
             notableAbbreviations: this.#options.notableAbbreviations,
             comparisonSymbolsWords: this.#options.comparisonSymbolsWords ?? DEFAULT_COMPARISON_SYMBOLS_WORDS,
+            defaultLang: this.#lang,
         });
 
         let token: SentenceToken | BlockToken | BoundaryToken | null = null;
