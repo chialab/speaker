@@ -13,12 +13,12 @@ import { Utterance } from './Utterance';
 
 /** Default map: symbol -> spoken word per language. */
 const DEFAULT_COMPARISON_SYMBOLS_WORDS: Record<string, Record<string, string>> = {
-    en: { '<': 'less than', '>': 'greater than', ',': '' },
-    it: { '<': 'minore', '>': 'maggiore', ',': '' },
-    es: { '<': 'menor que', '>': 'mayor que', ',': '' },
-    fr: { '<': 'inférieur à', '>': 'supérieur à', ',': '' },
-    de: { '<': 'kleiner als', '>': 'größer als', ',': '' },
-    pt: { '<': 'menor que', '>': 'maior que', ',': '' },
+    en: { '<': 'less than', '>': 'greater than' },
+    it: { '<': 'minore', '>': 'maggiore' },
+    es: { '<': 'menor que', '>': 'mayor que' },
+    fr: { '<': 'inférieur à', '>': 'supérieur à' },
+    de: { '<': 'kleiner als', '>': 'größer als' },
+    pt: { '<': 'menor que', '>': 'maior que' },
 };
 
 /**
@@ -334,7 +334,7 @@ export class Speaker extends Emitter<{
                             queue.push(currentUtterance);
                         }
 
-                        if (childToken.text.trim()) {
+                        if (currentUtterance.length || childToken.text.trim()) {
                             currentUtterance.addToken(childToken);
                         }
                     }
