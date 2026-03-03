@@ -11,6 +11,16 @@ import {
 } from './Tokenizer';
 import { Utterance } from './Utterance';
 
+/** Default map: symbol -> spoken word per language. */
+const DEFAULT_COMPARISON_SYMBOLS_WORDS: Record<string, Record<string, string>> = {
+    en: { '<': 'less than', '>': 'greater than' },
+    it: { '<': 'minore', '>': 'maggiore' },
+    es: { '<': 'menor que', '>': 'mayor que' },
+    fr: { '<': 'inférieur à', '>': 'supérieur à' },
+    de: { '<': 'kleiner als', '>': 'größer als' },
+    pt: { '<': 'menor que', '>': 'maior que' },
+};
+
 /**
  * Speaker options.
  */
@@ -52,6 +62,10 @@ export interface SpeakerOptions {
      * Only used when sentenceEndRegexp includes period as delimiter.
      */
     notableAbbreviations?: Record<string, string[]>;
+    /**
+     * Map per language of symbol -> spoken word (e.g. { en: { '<': 'less than', '>': 'greater than' } }).
+     */
+    comparisonSymbolsWords?: Record<string, Record<string, string>>;
 }
 
 /**
@@ -270,6 +284,8 @@ export class Speaker extends Emitter<{
             textFilterRegexp: this.#options.textFilterRegexp,
             textFilterReplacement: this.#options.textFilterReplacement,
             notableAbbreviations: this.#options.notableAbbreviations,
+            comparisonSymbolsWords: this.#options.comparisonSymbolsWords ?? DEFAULT_COMPARISON_SYMBOLS_WORDS,
+            defaultLang: this.#lang,
         });
 
         let token: SentenceToken | BlockToken | BoundaryToken | null = null;
