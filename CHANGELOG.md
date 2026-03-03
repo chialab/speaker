@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.4.0
+
+### Minor Changes
+
+- 14aec58: Fix comparison symbols (< , >)
+
 ## 3.3.0
 
 ### Minor Changes
