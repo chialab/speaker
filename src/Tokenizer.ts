@@ -30,6 +30,8 @@ export interface TextToken extends Token {
     lang: string | null;
     voice: string | null;
     voiceType: string | null;
+    /** Original text before symbol substitution (used by Speaker for segment highlight sync). */
+    rawText?: string;
 }
 
 /**
@@ -93,19 +95,86 @@ function createCheckFunction(rules?: CheckRule, deep = false): CheckFunction {
     return () => false;
 }
 
+export interface SymbolSegment {
+    text: string;
+    startOffset: number;
+    endOffset: number;
+}
+
+export interface SubstituteSymbolsResult {
+    segments: SymbolSegment[];
+    text: string;
+}
+
 /**
- * Substitute symbols with spoken words using the given map.
- * @param text The text to substitute.
- * @param lang The language of the text.
- * @param map The map of symbols to spoken words.
- * @returns The substituted text.
+ * Split text into segments (each substituted symbol gets its own segment for highlight sync)
+ * and return also the joined non-empty text. Offsets relative to chunk (0..rawText.length).
  */
-function substituteSymbols(text: string, lang: string, map?: Record<string, Record<string, string>>): string {
-    if (!map) {
-        return text;
+export function substituteSymbolsToSegments(
+    rawText: string,
+    lang: string,
+    map?: Record<string, Record<string, string>>
+): SubstituteSymbolsResult {
+    let segments: SymbolSegment[];
+    if (!map || !rawText) {
+        segments = [{ text: rawText, startOffset: 0, endOffset: rawText.length }];
+    } else {
+        const normalizedLang = lang.split(/[-_]/)[0].toLowerCase();
+        const langMap = map[normalizedLang];
+        if (!langMap) {
+            segments = [{ text: rawText, startOffset: 0, endOffset: rawText.length }];
+        } else {
+            const entries = Object.entries(langMap).sort(([a], [b]) => b.length - a.length);
+            segments = [];
+            let i = 0;
+            while (i < rawText.length) {
+                let found: { symbol: string; word: string } | null = null;
+                for (const [symbol, word] of entries) {
+                    if (rawText.substring(i, i + symbol.length) === symbol) {
+                        found = { symbol, word };
+                        break;
+                    }
+                }
+                if (found) {
+                    let j = i + found.symbol.length;
+                    while (j < rawText.length && /[,\s]/.test(rawText[j])) {
+                        j++;
+                    }
+                    segments.push({
+                        text: found.word + rawText.substring(i + found.symbol.length, j),
+                        startOffset: i,
+                        endOffset: i + found.symbol.length,
+                    });
+                    i = j;
+                } else {
+                    let runEnd = i + 1;
+                    while (runEnd < rawText.length) {
+                        let matchHere = false;
+                        for (const [symbol] of entries) {
+                            if (rawText.substring(runEnd, runEnd + symbol.length) === symbol) {
+                                matchHere = true;
+                                break;
+                            }
+                        }
+                        if (matchHere) break;
+                        runEnd++;
+                    }
+                    segments.push({
+                        text: rawText.substring(i, runEnd),
+                        startOffset: i,
+                        endOffset: runEnd,
+                    });
+                    i = runEnd;
+                }
+            }
+            if (segments.length === 0) {
+                segments = [{ text: rawText, startOffset: 0, endOffset: rawText.length }];
+            }
+        }
     }
-    const normalizedLang = lang.split(/[-_]/)[0].toLowerCase();
-    return map[normalizedLang]?.[text] ?? text;
+    const text = segments.filter((s) => s.text.length > 0).map((s) => s.text).join('');
+
+    return { segments, text };
 }
 
 /**
@@ -510,7 +579,8 @@ export function* tokenize(
                     const lang = getNodeLang(startNode, root);
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+                        text: substituteSymbolsToSegments(rawText, lang || defaultLang, symbolsToWords).text,
+                        rawText,
                         startNode,
                         startOffset,
                         endNode,
@@ -569,7 +639,8 @@ export function* tokenize(
                     const lang = getNodeLang(currentNode, root);
                     const token: BoundaryToken = {
                         type: TokenType.BOUNDARY,
-                        text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+                        text: substituteSymbolsToSegments(rawText, lang || defaultLang, symbolsToWords).text,
+                        rawText,
                         startNode: range.startContainer,
                         startOffset: range.startOffset,
                         endNode: range.endContainer,
@@ -629,7 +700,8 @@ export function* tokenize(
                 const lang = getNodeLang(startNode, root);
                 const token: BoundaryToken = {
                     type: TokenType.BOUNDARY,
-                    text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+                    text: substituteSymbolsToSegments(rawText, lang || defaultLang, symbolsToWords).text,
+                    rawText,
                     startNode,
                     startOffset,
                     endNode,
@@ -713,7 +785,8 @@ export function* tokenize(
             const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
             const token: BoundaryToken = {
                 type: TokenType.BOUNDARY,
-                text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+                text: substituteSymbolsToSegments(rawText, lang || defaultLang, symbolsToWords).text,
+                rawText,
                 startNode,
                 startOffset,
                 endNode,
@@ -782,7 +855,8 @@ export function* tokenize(
         const lang = getNodeLang(startNode, root);
         const token: BoundaryToken = {
             type: TokenType.BOUNDARY,
-            text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+            text: substituteSymbolsToSegments(rawText, lang || defaultLang, symbolsToWords).text,
+            rawText,
             startNode,
             startOffset,
             endNode,

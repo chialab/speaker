@@ -8,18 +8,55 @@ import {
     type SentenceToken,
     TokenType,
     TokenWalker,
+    substituteSymbolsToSegments,
 } from './Tokenizer';
 import { Utterance } from './Utterance';
 
 /** Default map: symbol -> spoken word per language. */
 const DEFAULT_SYMBOLS_TO_WORDS: Record<string, Record<string, string>> = {
-    en: { '<': 'less than', '>': 'greater than' },
-    it: { '<': 'minore', '>': 'maggiore' },
-    es: { '<': 'menor que', '>': 'mayor que' },
-    fr: { '<': 'inférieur à', '>': 'supérieur à' },
-    de: { '<': 'kleiner als', '>': 'größer als' },
-    pt: { '<': 'menor que', '>': 'maior que' },
+    en: { '<<': '', '>>': '', '<': 'less than', '>': 'greater than' },
+    it: { '<<': '', '>>': '', '<': 'minore', '>': 'maggiore' },
+    es: { '<<': '', '>>': '', '<': 'menor que', '>': 'mayor que' },
+    fr: { '<<': '', '>>': '', '<': 'inférieur à', '>': 'supérieur à' },
+    de: { '<<': '', '>>': '', '<': 'kleiner als', '>': 'größer als' },
+    pt: { '<<': '', '>>': '', '<': 'menor que', '>': 'maior que' },
 };
+
+/** Returns tokens to speak (expanded segments or single token), only non-empty text. */
+function getTokensToSpeak(
+    childToken: BoundaryToken,
+    symbolsToWords: Record<string, Record<string, string>>,
+    defaultLang: string
+): BoundaryToken[] {
+    if (
+        !childToken.rawText ||
+        childToken.rawText === childToken.text ||
+        childToken.startNode !== childToken.endNode ||
+        !Object.keys(symbolsToWords).length
+    ) {
+        return childToken.text.trim() ? [childToken] : [];
+    }
+    const segments = substituteSymbolsToSegments(
+        childToken.rawText,
+        childToken.lang || defaultLang,
+        symbolsToWords
+    ).segments.filter((seg) => seg.text.length > 0);
+    if (segments.length === 0) {
+        return [];
+    }
+
+    return segments.map((seg) => ({
+        type: TokenType.BOUNDARY,
+        text: seg.text,
+        startNode: childToken.startNode,
+        startOffset: childToken.startOffset + seg.startOffset,
+        endNode: childToken.endNode,
+        endOffset: childToken.startOffset + seg.endOffset,
+        lang: childToken.lang,
+        voiceType: childToken.voiceType,
+        voice: childToken.voice,
+    }));
+}
 
 /**
  * Speaker options.
@@ -300,6 +337,7 @@ export class Speaker extends Emitter<{
                     break;
                 case TokenType.BLOCK: {
                     const queue: Utterance[] = [];
+                    const symbolsToWords = this.#options.symbolsToWords ?? DEFAULT_SYMBOLS_TO_WORDS;
 
                     for (let index = 0, len = token.tokens.length; index < len; index++) {
                         const childToken = token.tokens[index];
@@ -327,15 +365,21 @@ export class Speaker extends Emitter<{
                                     block: token as BlockToken,
                                     sentence:
                                         sentences.find((sentenceToken) =>
-                                            sentenceToken.tokens.includes(currentToken)
+                                            sentenceToken.tokens.some(
+                                                (t) =>
+                                                    t.startNode === currentToken.startNode &&
+                                                    t.startOffset <= currentToken.startOffset &&
+                                                    t.endOffset >= currentToken.endOffset
+                                            )
                                         ) ?? null,
                                 });
                             });
                             queue.push(currentUtterance);
                         }
 
-                        if (currentUtterance.length || childToken.text.trim()) {
-                            currentUtterance.addToken(childToken);
+                        // Expand to segments when needed (highlight sync); skip empty (e.g. << >>)
+                        for (const t of getTokensToSpeak(childToken, symbolsToWords, this.#lang)) {
+                            currentUtterance.addToken(t);
                         }
                     }
 
