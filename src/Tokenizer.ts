@@ -94,18 +94,59 @@ function createCheckFunction(rules?: CheckRule, deep = false): CheckFunction {
 }
 
 /**
- * Substitute symbols with spoken words using the given map.
+ * Substitute comparison symbols with spoken words using the given map.
+ * A symbol is substituted only when neither the character immediately before
+ * nor the one immediately after it is itself a symbol character (i.e. a character
+ * that appears in any key of the map for the given language).
+ * This prevents substituting symbols that are part of a multi-symbol sequence
+ * (e.g. `>>` or `<>`) while still substituting symbols adjacent to other
+ * characters such as punctuation (e.g. `>,`).
+ *
  * @param text The text to substitute.
  * @param lang The language of the text.
- * @param map The map of symbols to spoken words.
+ * @param map The map of comparison symbols to spoken words, keyed by short lang code.
  * @returns The substituted text.
  */
 function substituteSymbols(text: string, lang: string, map?: Record<string, Record<string, string>>): string {
     if (!map) {
         return text;
     }
+
     const normalizedLang = lang.split(/[-_]/)[0].toLowerCase();
-    return map[normalizedLang]?.[text] ?? text;
+    const langMap = map[normalizedLang] ?? map[lang.toLowerCase()];
+    if (!langMap) {
+        return text;
+    }
+
+    const symbols = Object.keys(langMap).sort((a, b) => b.length - a.length);
+    const symbolChars = new Set(symbols.flatMap((s) => [...s]));
+
+    let result = text;
+    for (const symbol of symbols) {
+        if (!symbol) continue;
+        const replacement = langMap[symbol];
+        if (replacement == null) continue;
+
+        let i = 0;
+        let output = '';
+        while (i < result.length) {
+            if (result.startsWith(symbol, i)) {
+                const prev = i > 0 ? result[i - 1] : '';
+                const next = result[i + symbol.length] ?? '';
+                if ((!prev || !symbolChars.has(prev)) && (!next || !symbolChars.has(next))) {
+                    output += replacement;
+                } else {
+                    output += symbol;
+                }
+                i += symbol.length;
+            } else {
+                output += result[i++];
+            }
+        }
+        result = output;
+    }
+
+    return result;
 }
 
 /**
