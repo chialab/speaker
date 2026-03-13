@@ -109,6 +109,65 @@ function substituteSymbols(text: string, lang: string, map?: Record<string, Reco
 }
 
 /**
+ * Build one or more boundary tokens from a raw text chunk.
+ * If the text consists entirely of punctuation characters, each character is
+ * emitted as a separate boundary token.
+ * Otherwise a single token is returned.
+ * @param rawText The raw text chunk.
+ * @param lang The language of the text.
+ * @param defaultLang The default language to use if lang is not provided.
+ * @param symbolsToWords The map of symbols to spoken words.
+ * @param startNode The start node of the text chunk.
+ * @param startOffset The start offset in the start node.
+ * @param endNode The end node of the text chunk.
+ * @param endOffset The end offset in the end node.
+ * @param voiceType The voice type for the text chunk.
+ * @param voice The voice for the text chunk.
+ * @returns An array of boundary tokens.
+ */
+function makeBoundaryTokens(
+    rawText: string,
+    lang: string | null,
+    defaultLang: string,
+    symbolsToWords: Record<string, Record<string, string>> | undefined,
+    startNode: Node,
+    startOffset: number,
+    endNode: Node,
+    endOffset: number,
+    voiceType: string | null,
+    voice: string | null
+): BoundaryToken[] {
+    const chars = /^[\p{P}\p{S}]+$/u.test(rawText) ? [...rawText] : null;
+    if (!chars || chars.length <= 1) {
+        return [
+            {
+                type: TokenType.BOUNDARY,
+                text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+                startNode,
+                startOffset,
+                endNode,
+                endOffset,
+                lang,
+                voiceType,
+                voice,
+            },
+        ];
+    }
+    const sameNode = startNode === endNode;
+    return chars.map((char, i) => ({
+        type: TokenType.BOUNDARY,
+        text: substituteSymbols(char, lang || defaultLang, symbolsToWords),
+        startNode,
+        startOffset: sameNode ? startOffset + i : startOffset,
+        endNode,
+        endOffset: sameNode ? startOffset + i + 1 : endOffset,
+        lang,
+        voiceType,
+        voice,
+    }));
+}
+
+/**
  * Check if an element is a block.
  * @param element The element to check.
  * @returns True if the element has display block.
@@ -508,26 +567,27 @@ export function* tokenize(
 
                     const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
                     const lang = getNodeLang(startNode, root);
-                    const token: BoundaryToken = {
-                        type: TokenType.BOUNDARY,
-                        text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+                    for (const token of makeBoundaryTokens(
+                        rawText,
+                        lang,
+                        defaultLang,
+                        symbolsToWords,
                         startNode,
                         startOffset,
                         endNode,
-                        endOffset: (endNode.textContent || '').length,
-                        lang,
-                        voiceType: getNodeVoiceType(startNode),
-                        voice: getNodeVoice(startNode),
-                    };
-
-                    if (collectBoundaries) {
-                        yield token;
-                    }
-                    if (collectSentences) {
-                        currentSentenceTokens.push(token);
-                    }
-                    if (collectBlocks) {
-                        currentBlockTokens.push(token);
+                        (endNode.textContent || '').length,
+                        getNodeVoiceType(startNode),
+                        getNodeVoice(startNode)
+                    )) {
+                        if (collectBoundaries) {
+                            yield token;
+                        }
+                        if (collectSentences) {
+                            currentSentenceTokens.push(token);
+                        }
+                        if (collectBlocks) {
+                            currentBlockTokens.push(token);
+                        }
                     }
 
                     chunk = '';
@@ -567,26 +627,27 @@ export function* tokenize(
                     range.selectNode(currentNode);
                     const rawText = textValue.replace(textFilterRegexp, textFilterReplacement);
                     const lang = getNodeLang(currentNode, root);
-                    const token: BoundaryToken = {
-                        type: TokenType.BOUNDARY,
-                        text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
-                        startNode: range.startContainer,
-                        startOffset: range.startOffset,
-                        endNode: range.endContainer,
-                        endOffset: range.endOffset,
+                    for (const token of makeBoundaryTokens(
+                        rawText,
                         lang,
-                        voiceType: getNodeVoiceType(currentNode),
-                        voice: getNodeVoice(currentNode),
-                    };
-
-                    if (collectBoundaries) {
-                        yield token;
-                    }
-                    if (collectSentences) {
-                        currentSentenceTokens.push(token);
-                    }
-                    if (collectBlocks) {
-                        currentBlockTokens.push(token);
+                        defaultLang,
+                        symbolsToWords,
+                        range.startContainer,
+                        range.startOffset,
+                        range.endContainer,
+                        range.endOffset,
+                        getNodeVoiceType(currentNode),
+                        getNodeVoice(currentNode)
+                    )) {
+                        if (collectBoundaries) {
+                            yield token;
+                        }
+                        if (collectSentences) {
+                            currentSentenceTokens.push(token);
+                        }
+                        if (collectBlocks) {
+                            currentBlockTokens.push(token);
+                        }
                     }
 
                     if (isBlockElement) {
@@ -627,23 +688,29 @@ export function* tokenize(
 
                 const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
                 const lang = getNodeLang(startNode, root);
-                const token: BoundaryToken = {
-                    type: TokenType.BOUNDARY,
-                    text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+                for (const token of makeBoundaryTokens(
+                    rawText,
+                    lang,
+                    defaultLang,
+                    symbolsToWords,
                     startNode,
                     startOffset,
                     endNode,
-                    endOffset: (endNode.textContent || '').length,
-                    lang,
-                    voiceType: getNodeVoiceType(startNode),
-                    voice: getNodeVoice(startNode),
-                };
-
-                if (collectBoundaries) {
-                    yield token;
+                    (endNode.textContent || '').length,
+                    getNodeVoiceType(startNode),
+                    getNodeVoice(startNode)
+                )) {
+                    if (collectBoundaries) {
+                        yield token;
+                    }
+                    if (collectSentences) {
+                        currentSentenceTokens.push(token);
+                    }
+                    if (collectBlocks) {
+                        currentBlockTokens.push(token);
+                    }
                 }
                 if (collectSentences) {
-                    currentSentenceTokens.push(token);
                     yield {
                         type: TokenType.SENTENCE,
                         startNode: currentSentenceTokens[0].startNode,
@@ -655,7 +722,6 @@ export function* tokenize(
                     currentSentenceTokens = [];
                 }
                 if (collectBlocks) {
-                    currentBlockTokens.push(token);
                     yield {
                         type: TokenType.BLOCK,
                         startNode: currentBlockTokens[0].startNode,
@@ -711,22 +777,29 @@ export function* tokenize(
 
             const lang = getNodeLang(startNode, root);
             const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
-            const token: BoundaryToken = {
-                type: TokenType.BOUNDARY,
-                text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+            for (const token of makeBoundaryTokens(
+                rawText,
+                lang,
+                defaultLang,
+                symbolsToWords,
                 startNode,
                 startOffset,
                 endNode,
                 endOffset,
-                lang,
-                voiceType: getNodeVoiceType(startNode),
-                voice: getNodeVoice(startNode),
-            };
-            if (collectBoundaries) {
-                yield token;
+                getNodeVoiceType(startNode),
+                getNodeVoice(startNode)
+            )) {
+                if (collectBoundaries) {
+                    yield token;
+                }
+                if (collectSentences) {
+                    currentSentenceTokens.push(token);
+                }
+                if (collectBlocks) {
+                    currentBlockTokens.push(token);
+                }
             }
             if (collectSentences) {
-                currentSentenceTokens.push(token);
                 // If the pattern includes period and the chunk ends with a notable abbreviation, don't split
                 const matchesSentenceEnd = sentenceEndRegexp.test(chunk);
                 const notableAbbreviations = (() => {
@@ -744,20 +817,18 @@ export function* tokenize(
                     periodIsDelimiter && endsWithNotableAbbreviation(chunk, notableAbbreviations);
 
                 if (matchesSentenceEnd && !endsWithAbbreviation) {
+                    const lastSentenceToken = currentSentenceTokens[currentSentenceTokens.length - 1];
                     yield {
                         type: TokenType.SENTENCE,
                         startNode: currentSentenceTokens[0].startNode,
                         startOffset: currentSentenceTokens[0].startOffset,
-                        endNode: token.endNode,
-                        endOffset: token.endOffset,
+                        endNode: lastSentenceToken.endNode,
+                        endOffset: lastSentenceToken.endOffset,
                         tokens: currentSentenceTokens,
                     } as SentenceToken;
 
                     currentSentenceTokens = [];
                 }
-            }
-            if (collectBlocks) {
-                currentBlockTokens.push(token);
             }
 
             chunk = '';
@@ -780,25 +851,27 @@ export function* tokenize(
 
         const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
         const lang = getNodeLang(startNode, root);
-        const token: BoundaryToken = {
-            type: TokenType.BOUNDARY,
-            text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
+        for (const token of makeBoundaryTokens(
+            rawText,
+            lang,
+            defaultLang,
+            symbolsToWords,
             startNode,
             startOffset,
             endNode,
-            endOffset: (endNode.textContent || '').length,
-            lang,
-            voiceType: getNodeVoiceType(startNode),
-            voice: getNodeVoice(startNode),
-        };
-        if (collectBoundaries) {
-            yield token;
-        }
-        if (collectSentences) {
-            currentSentenceTokens.push(token);
-        }
-        if (collectBlocks) {
-            currentBlockTokens.push(token);
+            (endNode.textContent || '').length,
+            getNodeVoiceType(startNode),
+            getNodeVoice(startNode)
+        )) {
+            if (collectBoundaries) {
+                yield token;
+            }
+            if (collectSentences) {
+                currentSentenceTokens.push(token);
+            }
+            if (collectBlocks) {
+                currentBlockTokens.push(token);
+            }
         }
     }
 

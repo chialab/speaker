@@ -212,19 +212,14 @@ describe('tokenizer', () => {
         });
     });
 
-    test('should split sentences when abbreviations list is empty', () => {
-        container.innerHTML = '<p>Ho comprato frutta, verdura, ecc. e sono tornato a casa.</p>';
+    test('should split punctuation-only tokens into individual boundary tokens', () => {
+        container.innerHTML = '<p lang="en">a >, b</p>';
 
-        const tokens = [...tokenize(container, TokenType.SENTENCE)];
-        expect(tokens).toHaveLength(2);
-        expect(tokens[0]).toMatchObject({
-            type: 2,
-            startOffset: 0,
-            endOffset: 33,
-        });
-        expect(tokens[1]).toMatchObject({
-            type: 2,
-        });
-        expect(tokens[1].endOffset).toBe(56);
+        const tokens = [...tokenize(container, TokenType.BOUNDARY)];
+        expect(tokens).toHaveLength(4);
+        expect(tokens[0]).toMatchObject({ type: 1, text: 'a' });
+        expect(tokens[1]).toMatchObject({ type: 1, text: '>' });
+        expect(tokens[2]).toMatchObject({ type: 1, text: ',' });
+        expect(tokens[3]).toMatchObject({ type: 1, text: 'b' });
     });
 });
