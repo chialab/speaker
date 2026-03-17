@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.5.1
+
+### Patch Changes
+
+- 9dc05a8: Split boundary tokens when punctuations only
+
 ## 3.5.0
 
 ### Minor Changes
