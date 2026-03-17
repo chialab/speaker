@@ -60,6 +60,11 @@ export interface BlockToken extends GroupToken<BoundaryToken> {
     type: 4;
 }
 
+/**
+ * Regular expression to check if a text consists entirely of punctuation characters.
+ */
+const PUNCTUATION_REGEX = /^[\p{P}\p{S}]+$/u;
+
 export type CheckFunction = (node: Node) => boolean;
 
 export type CheckRule = string | CheckFunction | CheckRule[];
@@ -114,57 +119,43 @@ function substituteSymbols(text: string, lang: string, map?: Record<string, Reco
  * emitted as a separate boundary token.
  * Otherwise a single token is returned.
  * @param rawText The raw text chunk.
- * @param lang The language of the text.
- * @param defaultLang The default language to use if lang is not provided.
- * @param symbolsToWords The map of symbols to spoken words.
  * @param startNode The start node of the text chunk.
  * @param startOffset The start offset in the start node.
  * @param endNode The end node of the text chunk.
  * @param endOffset The end offset in the end node.
  * @param voiceType The voice type for the text chunk.
  * @param voice The voice for the text chunk.
- * @returns An array of boundary tokens.
+ * @param symbolsToWords The map of symbols to spoken words.
+ * @returns An Iterable of boundary tokens.
  */
-function makeBoundaryTokens(
+function* makeBoundaryTokens(
     rawText: string,
-    lang: string | null,
-    defaultLang: string,
-    symbolsToWords: Record<string, Record<string, string>> | undefined,
+    lang: string,
     startNode: Node,
     startOffset: number,
     endNode: Node,
     endOffset: number,
     voiceType: string | null,
-    voice: string | null
-): BoundaryToken[] {
-    const chars = /^[\p{P}\p{S}]+$/u.test(rawText) ? [...rawText] : null;
-    if (!chars || chars.length <= 1) {
-        return [
-            {
-                type: TokenType.BOUNDARY,
-                text: substituteSymbols(rawText, lang || defaultLang, symbolsToWords),
-                startNode,
-                startOffset,
-                endNode,
-                endOffset,
-                lang,
-                voiceType,
-                voice,
-            },
-        ];
-    }
+    voice: string | null,
+    symbolsToWords?: Record<string, Record<string, string>>
+): Iterable<BoundaryToken> {
+    const chunks = PUNCTUATION_REGEX.test(rawText) ? [...rawText] : [rawText];
     const sameNode = startNode === endNode;
-    return chars.map((char, i) => ({
-        type: TokenType.BOUNDARY,
-        text: substituteSymbols(char, lang || defaultLang, symbolsToWords),
-        startNode,
-        startOffset: sameNode ? startOffset + i : startOffset,
-        endNode,
-        endOffset: sameNode ? startOffset + i + 1 : endOffset,
-        lang,
-        voiceType,
-        voice,
-    }));
+    let offset = 0;
+    for (const chunk of chunks) {
+        yield {
+            type: TokenType.BOUNDARY,
+            text: substituteSymbols(chunk, lang, symbolsToWords),
+            startNode,
+            startOffset: sameNode ? startOffset + offset : startOffset,
+            endNode,
+            endOffset: sameNode ? startOffset + offset + chunk.length : endOffset,
+            lang,
+            voiceType,
+            voice,
+        };
+        offset += chunk.length;
+    }
 }
 
 /**
@@ -569,15 +560,14 @@ export function* tokenize(
                     const lang = getNodeLang(startNode, root);
                     for (const token of makeBoundaryTokens(
                         rawText,
-                        lang,
-                        defaultLang,
-                        symbolsToWords,
+                        lang || defaultLang,
                         startNode,
                         startOffset,
                         endNode,
                         (endNode.textContent || '').length,
                         getNodeVoiceType(startNode),
-                        getNodeVoice(startNode)
+                        getNodeVoice(startNode),
+                        symbolsToWords
                     )) {
                         if (collectBoundaries) {
                             yield token;
@@ -629,15 +619,14 @@ export function* tokenize(
                     const lang = getNodeLang(currentNode, root);
                     for (const token of makeBoundaryTokens(
                         rawText,
-                        lang,
-                        defaultLang,
-                        symbolsToWords,
+                        lang || defaultLang,
                         range.startContainer,
                         range.startOffset,
                         range.endContainer,
                         range.endOffset,
                         getNodeVoiceType(currentNode),
-                        getNodeVoice(currentNode)
+                        getNodeVoice(currentNode),
+                        symbolsToWords
                     )) {
                         if (collectBoundaries) {
                             yield token;
@@ -690,15 +679,14 @@ export function* tokenize(
                 const lang = getNodeLang(startNode, root);
                 for (const token of makeBoundaryTokens(
                     rawText,
-                    lang,
-                    defaultLang,
-                    symbolsToWords,
+                    lang || defaultLang,
                     startNode,
                     startOffset,
                     endNode,
                     (endNode.textContent || '').length,
                     getNodeVoiceType(startNode),
-                    getNodeVoice(startNode)
+                    getNodeVoice(startNode),
+                    symbolsToWords
                 )) {
                     if (collectBoundaries) {
                         yield token;
@@ -779,15 +767,14 @@ export function* tokenize(
             const rawText = chunk.replace(textFilterRegexp, textFilterReplacement);
             for (const token of makeBoundaryTokens(
                 rawText,
-                lang,
-                defaultLang,
-                symbolsToWords,
+                lang || defaultLang,
                 startNode,
                 startOffset,
                 endNode,
                 endOffset,
                 getNodeVoiceType(startNode),
-                getNodeVoice(startNode)
+                getNodeVoice(startNode),
+                symbolsToWords
             )) {
                 if (collectBoundaries) {
                     yield token;
@@ -853,15 +840,14 @@ export function* tokenize(
         const lang = getNodeLang(startNode, root);
         for (const token of makeBoundaryTokens(
             rawText,
-            lang,
-            defaultLang,
-            symbolsToWords,
+            lang || defaultLang,
             startNode,
             startOffset,
             endNode,
             (endNode.textContent || '').length,
             getNodeVoiceType(startNode),
-            getNodeVoice(startNode)
+            getNodeVoice(startNode),
+            symbolsToWords
         )) {
             if (collectBoundaries) {
                 yield token;
