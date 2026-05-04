@@ -42,9 +42,11 @@ let VOICES_PROMISE: Promise<SpeechSynthesisVoice[]>;
 /**
  * Get speech synthesis voices.
  * @param timeoutTime Timeout time in milliseconds.
+ * @param filterLocals Filter out non local voices.
+ *
  * @returns A promise that resolves voices.
  */
-export function getVoices(timeoutTime = 2000): Promise<SpeechSynthesisVoice[]> {
+export function getVoices(timeoutTime = 2000, filterLocals = true): Promise<SpeechSynthesisVoice[]> {
     if (!VOICES_PROMISE) {
         VOICES_PROMISE = new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
@@ -55,7 +57,10 @@ export function getVoices(timeoutTime = 2000): Promise<SpeechSynthesisVoice[]> {
                 let voices = getSpeechSynthesis().getVoices();
                 if (voices.length) {
                     clearTimeout(timeout);
-                    voices = [...voices].filter((voice) => voice.localService);
+                    voices = [...voices];
+                    if (filterLocals) {
+                        voices = voices.filter((voice) => voice.localService);
+                    }
                     if (!voices.length) {
                         reject(new Error('Cannot retrieve offline voices'));
                         return false;
