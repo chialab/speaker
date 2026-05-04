@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.5.2
+
+### Patch Changes
+
+- e54c2de: Local service filtering
+
 ## 3.5.1
 
 ### Patch Changes
