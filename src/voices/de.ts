@@ -24,6 +24,7 @@ const data: Voice[] = [
     ['Google Deutsch 1 (Natural)', 'de-DE', 'female', 3],
     ['Google Deutsch 3 (Natural)', 'de-DE', 'male', 3],
     ['Google Deutsch 4 (Natural)', 'de-DE', 'male', 3],
+    ['Google Deutsch', 'de-DE', 'female', 3],
 ];
 
 export default data;
