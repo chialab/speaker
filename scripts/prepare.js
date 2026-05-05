@@ -5,10 +5,7 @@ import { fileURLToPath } from 'node:url';
 const scriptPath = fileURLToPath(new URL(import.meta.url));
 const root = resolve(scriptPath, '../..');
 const voicesPath = resolve(root, 'src/voices');
-const webSpeechRecommendedVoicesPath = resolve(
-    fileURLToPath(import.meta.resolve('web-speech-recommended-voices/README.md')),
-    '../json'
-);
+const webSpeechRecommendedVoicesPath = resolve(root, 'node_modules/@readium/speech/json');
 
 await rm(voicesPath, { recursive: true, force: true });
 await mkdir(voicesPath, { recursive: true });

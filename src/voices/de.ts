@@ -11,10 +11,10 @@ const data: Voice[] = [
     ['Microsoft Jonas Online (Natural) - German (Austria)', 'de-AT', 'male', 4],
     ['Microsoft Leni Online (Natural) - German (Switzerland)', 'de-CH', 'female', 4],
     ['Microsoft Jan Online (Natural) - German (Switzerland)', 'de-CH', 'male', 4],
+    ['Google Deutsch', 'de-DE', 'female', 3],
     ['Anna', 'de-DE', 'female', 3],
     ['Helena', 'de-DE', 'female', 1],
     ['Martin', 'de-DE', 'male', 1],
-    ['Weibliche Google-Stimme (Deutschland)', 'de-DE', 'female', 3],
     ['Microsoft Hedda - German (Germany)', 'de-DE', 'female', 2],
     ['Microsoft Katja - German (Germany)', 'de-DE', 'female', 2],
     ['Microsoft Stefan - German (Germany)', 'de-DE', 'male', 2],
@@ -24,7 +24,6 @@ const data: Voice[] = [
     ['Google Deutsch 1 (Natural)', 'de-DE', 'female', 3],
     ['Google Deutsch 3 (Natural)', 'de-DE', 'male', 3],
     ['Google Deutsch 4 (Natural)', 'de-DE', 'male', 3],
-    ['Google Deutsch', 'de-DE', 'female', 3],
 ];
 
 export default data;
