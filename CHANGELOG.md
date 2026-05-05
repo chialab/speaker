@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.5.4
+
+### Patch Changes
+
+- ba31732: New speech package
+
 ## 3.5.3
 
 ### Patch Changes
