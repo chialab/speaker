@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.5.3
+
+### Patch Changes
+
+- b605b60: missing a good german voice
+
 ## 3.5.2
 
 ### Patch Changes
