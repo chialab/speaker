@@ -635,6 +635,12 @@
   resolved "https://registry.npmjs.org/@publint/pack/-/pack-0.1.2.tgz#1b9a9567423262093e4a73e77697b65bf622f8c9"
   integrity sha512-S+9ANAvUmjutrshV4jZjaiG8XQyuJIZ8a4utWmN/vW1sgQ9IfBnPndwkmQYw53QmouOIytT874u65HEmu6H5jw==
 
+"@readium/speech@github:readium/speech":
+  version "0.1.0"
+  resolved "https://codeload.github.com/readium/speech/tar.gz/33404e4c3250f6937ca91a5729261ba3dce1b659"
+  dependencies:
+    string-strip-html "^13.4.23"
+
 "@rollup/rollup-android-arm-eabi@4.44.2":
   version "4.44.2"
   resolved "https://registry.npmjs.org/@rollup/rollup-android-arm-eabi/-/rollup-android-arm-eabi-4.44.2.tgz#6819b7f1e41a49af566f629a1556eaeea774d043"
@@ -775,6 +781,18 @@
   version "1.0.8"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz#958b91c991b1867ced318bedea0e215ee050726e"
   integrity sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==
+
+"@types/lodash-es@^4.17.12":
+  version "4.17.12"
+  resolved "https://registry.yarnpkg.com/@types/lodash-es/-/lodash-es-4.17.12.tgz#65f6d1e5f80539aa7cfbfc962de5def0cf4f341b"
+  integrity sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash@*":
+  version "4.17.24"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.24.tgz#4ae334fc62c0e915ca8ed8e35dcc6d4eeb29215f"
+  integrity sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==
 
 "@types/node@^12.7.1":
   version "12.20.55"
@@ -1019,6 +1037,13 @@ ci-info@^3.7.0:
   version "3.9.0"
   resolved "https://registry.npmjs.org/ci-info/-/ci-info-3.9.0.tgz#4279a62028a7b1f262f3473fc9605f5e218c59b4"
   integrity sha512-NIxF55hv4nSqQswkAeiOi1r83xy8JldOFDTWiug55KBu9Jnblncd2U6ViHmYgHf01TPZS77NJBhBMKdWj9HQMQ==
+
+codsen-utils@^1.7.3:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/codsen-utils/-/codsen-utils-1.7.3.tgz#f828526dec6a7c52155cc90a6b5ca16a423947c1"
+  integrity sha512-YIFQQ1n2NSgwoB3sCe7RpkZzsrPxTMek6jc7wC9fXOm1wwfWAKja9gLOMEjlXOUd3LKV3o6Jci7n9BoHs5Z8Sg==
+  dependencies:
+    rfdc "^1.4.1"
 
 color-convert@^2.0.1:
   version "2.0.1"
@@ -1301,6 +1326,11 @@ has-flag@^4.0.0:
   resolved "https://registry.npmjs.org/has-flag/-/has-flag-4.0.0.tgz#944771fd9c81c81265c4d6941860da06bb59479b"
   integrity sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
 
+html-entities@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/html-entities/-/html-entities-2.6.0.tgz#7c64f1ea3b36818ccae3d3fb48b6974208e984f8"
+  integrity sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ==
+
 html-escaper@^2.0.0:
   version "2.0.2"
   resolved "https://registry.npmjs.org/html-escaper/-/html-escaper-2.0.2.tgz#dfd60027da36a36dfcbe236262c00a5822681453"
@@ -1454,6 +1484,11 @@ locate-path@^5.0.0:
   integrity sha512-t7hw9pI+WvuwNJXwk5zVHpyhIqzg2qTlklJOf0mVxGSbe3Fp2VieZcduNYjaLDoy6p9uGpQEGWG87WpMKlNq8g==
   dependencies:
     p-locate "^4.1.0"
+
+lodash-es@^4.17.22:
+  version "4.18.1"
+  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.18.1.tgz#b962eeb80d9d983a900bf342961fb7418ca10b1d"
+  integrity sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==
 
 lodash.startcase@^4.4.0:
   version "4.4.0"
@@ -1723,6 +1758,37 @@ queue-microtask@^1.2.2:
   resolved "https://registry.npmjs.org/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
 
+ranges-apply@^7.1.3:
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/ranges-apply/-/ranges-apply-7.1.3.tgz#ecc847bdfcdccb6f204b4862e6b49f9ec7c6e1e1"
+  integrity sha512-+dpc801TK6qUoMKU9dnwD0wH6XORtZicXLVm4p43jEp+te7Q+Tw0Pa4cHX9Mj1W0zshVYh1S4RIYI38ZUPglqQ==
+  dependencies:
+    ranges-merge "^9.1.3"
+    tiny-invariant "^1.3.3"
+
+ranges-merge@^9.1.3:
+  version "9.1.3"
+  resolved "https://registry.yarnpkg.com/ranges-merge/-/ranges-merge-9.1.3.tgz#5b7af4623e210169a234dbab7faa036d000d7351"
+  integrity sha512-dPS11e7AHD1tnuzrboYa+n07JqbHccMqt94C3cSlJ9tTC/RN6P+iGePhTyvCPpoNDWVOEVX4JGyGH0oHjwas0g==
+  dependencies:
+    ranges-push "^7.1.3"
+    ranges-sort "^6.1.3"
+
+ranges-push@^7.1.3:
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/ranges-push/-/ranges-push-7.1.3.tgz#48d0c467387229561aaa3e7821d993e808d908eb"
+  integrity sha512-3laGXNa4CW1vt6e2RqC35xRmxXpcWwLNpepTQJ+dkftc/7rH+d9pQ/UQgV6/peN6DsDcpJuu+PjLjWprz2UjDA==
+  dependencies:
+    codsen-utils "^1.7.3"
+    ranges-sort "^6.1.3"
+    string-collapse-leading-whitespace "^7.1.3"
+    string-trim-spaces-only "^5.1.3"
+
+ranges-sort@^6.1.3:
+  version "6.1.3"
+  resolved "https://registry.yarnpkg.com/ranges-sort/-/ranges-sort-6.1.3.tgz#feaf6b50c019285b6168f10a47ad42c183a6783f"
+  integrity sha512-JsTMmurWEOPYowp1OwUbjcfXyDfaTB+AWoiZwjV+3qOv0uUI7A1CExGwyFwfXEO5HYThOTDC96qC9a6BYqFbyg==
+
 react-is@^17.0.1:
   version "17.0.2"
   resolved "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
@@ -1747,6 +1813,11 @@ reusify@^1.0.4:
   version "1.1.0"
   resolved "https://registry.npmjs.org/reusify/-/reusify-1.1.0.tgz#0fe13b9522e1473f51b558ee796e08f11f9b489f"
   integrity sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==
+
+rfdc@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/rfdc/-/rfdc-1.4.1.tgz#778f76c4fb731d93414e8f925fbecf64cce7f6ca"
+  integrity sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==
 
 rimraf@^5.0.2:
   version "5.0.10"
@@ -1877,6 +1948,37 @@ std-env@^3.9.0:
   resolved "https://registry.npmjs.org/std-env/-/std-env-3.9.0.tgz#1a6f7243b339dca4c9fd55e1c7504c77ef23e8f1"
   integrity sha512-UGvjygr6F6tpH7o2qyqR6QYpwraIjKSdtzyBdyytFOHmPZY917kwdwLG0RbOjWOnKmnm3PeHjaoLLMie7kPLQw==
 
+string-collapse-leading-whitespace@^7.1.3:
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/string-collapse-leading-whitespace/-/string-collapse-leading-whitespace-7.1.3.tgz#9e75942dd9158ff04b343adb7455466da8436138"
+  integrity sha512-bCgNODedM9daANnnNPOHuz++qUeVHgsPMghNPznbLLnBviNyuKt9vzHIa6OGTSpWzJUO4Rlffu4+RD47pSTq3g==
+
+string-left-right@^6.1.3:
+  version "6.1.3"
+  resolved "https://registry.yarnpkg.com/string-left-right/-/string-left-right-6.1.3.tgz#0edad080a49f96d50f60f346a771a3b43478a272"
+  integrity sha512-XPqLphMTTbPMRs4DPX0flLtVFsDWZ+Og3tyku1FiiE2b/+SUHmiO1KRg7NBlb5e9UrojE5F3ryXORL0VYhwwgA==
+  dependencies:
+    codsen-utils "^1.7.3"
+    rfdc "^1.4.1"
+
+string-strip-html@^13.4.23:
+  version "13.5.3"
+  resolved "https://registry.yarnpkg.com/string-strip-html/-/string-strip-html-13.5.3.tgz#04bbb5ec09898603fedccff46a5e42dd1e3cbc59"
+  integrity sha512-MjrGYjcyOfY8VLXpbEJRtiHLFkWRRIdRt7hcBxGUo2GGM/YSyIfiRQ3q0y2pb+RwYHUfVbw3euuyLzxqyxhyIA==
+  dependencies:
+    "@types/lodash-es" "^4.17.12"
+    codsen-utils "^1.7.3"
+    html-entities "^2.6.0"
+    lodash-es "^4.17.22"
+    ranges-apply "^7.1.3"
+    ranges-push "^7.1.3"
+    string-left-right "^6.1.3"
+
+string-trim-spaces-only@^5.1.3:
+  version "5.1.3"
+  resolved "https://registry.yarnpkg.com/string-trim-spaces-only/-/string-trim-spaces-only-5.1.3.tgz#7415396dcbf8ce346534baf7a9844dd742f517fc"
+  integrity sha512-Flb782YX49j4GkLv/M2rqJik/lUq+OJnT/q7kQ6byZtgknAo1wb1XFBN3b+7UMW5I6VB1QdNAoh9oiUa9izBpA==
+
 "string-width-cjs@npm:string-width@^4.2.0":
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
@@ -1957,6 +2059,11 @@ test-exclude@^7.0.1:
     "@istanbuljs/schema" "^0.1.2"
     glob "^10.4.1"
     minimatch "^9.0.4"
+
+tiny-invariant@^1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/tiny-invariant/-/tiny-invariant-1.3.3.tgz#46680b7a873a0d5d10005995eb90a70d74d60127"
+  integrity sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==
 
 tinybench@^2.9.0:
   version "2.9.0"
@@ -2086,10 +2193,6 @@ vitest@^3.0.0:
     vite "^5.0.0 || ^6.0.0 || ^7.0.0-0"
     vite-node "3.2.4"
     why-is-node-running "^2.3.0"
-
-"web-speech-recommended-voices@github:HadrienGardeur/web-speech-recommended-voices":
-  version "0.0.0"
-  resolved "https://codeload.github.com/HadrienGardeur/web-speech-recommended-voices/tar.gz/57e7a3417e6632d6d057a24a652d84715c44a038"
 
 which@^2.0.1:
   version "2.0.2"
