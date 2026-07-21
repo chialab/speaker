@@ -467,7 +467,7 @@ export function* tokenize(
     const root = options.root;
     const range = options.range;
     const sentenceEndRegexp = options.sentenceEndRegexp ?? /[.!?:](\s+|$)/;
-    const textFilterRegexp = options.textFilterRegexp ?? /(?![.,:;\-!?'’])\p{P}/gu;
+    const textFilterRegexp = new RegExp(options.textFilterRegexp ?? /(?![.,:;\-!?'’])[\p{P}\p{So}]/gu, 'gu');
     const textFilterReplacement = (options.textFilterReplacement ?? ',') as Parameters<
         typeof String.prototype.replace
     >[1];
