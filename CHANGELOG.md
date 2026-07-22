@@ -1,5 +1,11 @@
 # @chialab/speaker
 
+## 3.5.5
+
+### Patch Changes
+
+- 499c356: Skip "other symbols" punctuaction.
+
 ## 3.5.4
 
 ### Patch Changes
